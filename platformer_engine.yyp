@@ -9,6 +9,7 @@
     {"id":{"name":"Utility","path":"scripts/Utility/Utility.yy",},"order":3,},
     {"id":{"name":"spr_player_idle","path":"sprites/spr_player_idle/spr_player_idle.yy",},"order":0,},
     {"id":{"name":"spr_wall","path":"sprites/spr_wall/spr_wall.yy",},"order":1,},
+    {"id":{"name":"WaitLibrary","path":"scripts/WaitLibrary/WaitLibrary.yy",},"order":4,},
   ],
   "Options": [
     {"name":"HTML5","path":"options/html5/options_html5.yy",},

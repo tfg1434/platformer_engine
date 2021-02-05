@@ -44,7 +44,7 @@ function animation_end() {
 	return (image_index + image_speed*sprite_get_speed(sprite_index)/(sprite_get_speed_type(sprite_index)==spritespeed_framespergameframe? 1 : game_get_speed(gamespeed_fps)) >= image_number);	
 }
 
-///@func draw_set_text(colour, font, halign, valign)
+/// @func draw_set_text(colour, font, halign, valign)
 ///@param {real}			colour
 ///@param {real}			font
 ///@param {real}			halign
@@ -57,7 +57,7 @@ function draw_set_text(_colour, _font, _halign, _valign){
 	draw_set_valign(_valign)
 }
 
-///@func string_wrap(string, max_width)
+/// @func string_wrap(string, max_width)
 ///@param {string} string			string to be wrapped
 ///@param {real} max_width			string WIDTH (not length) to wrap after
 ///@returns {string}				wrapped string
@@ -81,7 +81,7 @@ function string_wrap(_str, _max_width){
 	return _str
 }
 
-///@func nine_slice_box_stretched(sprite, x1, y1, x2, y2, index)
+/// @func nine_slice_box_stretched(sprite, x1, y1, x2, y2, index)
 ///@arg sprite
 ///@arg x1 left
 ///@arg y1 top
@@ -122,7 +122,7 @@ function nine_slice_box_stretched(sprite, x1, y1, x2, y2, index){
 	draw_sprite_part_ext(argument0, _index, _size, _size * 2, 1, _size, _x1 + _size, _y1 + _h - (_size), _w - (_size * 2), 1, c_white,1);
 }
 
-///@func str_split_array(string, delimiter)
+/// @func str_split_array(string, delimiter)
 ///@author YellowAfterLife
 function str_split(s, d){
     if (0) return argument[0]
@@ -138,7 +138,7 @@ function str_split(s, d){
     return r;
 }
 
-///@func array_reverse(array, start, end)
+/// @func array_reverse(array, start, end)
 function array_reverse(_array, _start, _end){
     while (_start < _end){
         var _temp = _array[_start]
@@ -149,7 +149,7 @@ function array_reverse(_array, _start, _end){
     }
 }
 
-///@func array_count(array, what)
+/// @func array_count(array, what)
 function array_count(_array, _what) {
     var _count = 0;
     for (var i = 0; i < array_length(_array); i++) {
@@ -176,7 +176,7 @@ function wave(from, to, duration, offset){
 	return argument0 + a4 + sin((((current_time * 0.001) + argument2 * argument3) / argument2) * (pi*2)) * a4;
 }
 
-///@func frames_to_ms(frames)
+/// @func frames_to_ms(frames)
 function frames_to_ms(_f){
 	return 1000 * _f / FPS
 }

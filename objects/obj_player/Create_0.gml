@@ -28,6 +28,10 @@ accel_time = 6 //in frames
 deccel_time = 3
 walksp = 3
 
+dashsp = 10
+dash_accel_time = 5
+dash_deccel_time = 18
+
 ///@func move_n_collide()
 move_n_collide = function(){
 	if (place_meeting(x + hsp, y, obj_wall)){
@@ -42,12 +46,18 @@ move_n_collide = function(){
 	y += vsp
 }
 
-///@func change_hsp(hdir)
-change_hsp = function(_hdir){
+///@func change_hsp(hdir, accel, deccel)
+change_hsp = function(_hdir, _accel_spd, _deccel_spd){
 	if (KEY_RIGHT ^ KEY_LEFT){
-		hsp = approach(hsp, _hdir * walksp, walksp / accel_time)
+		hsp = approach(hsp, _hdir * walksp, _accel_spd)
 	}
-	else hsp = approach(hsp, 0, walksp / deccel_time)
+	else hsp = approach(hsp, 0, _deccel_spd)
+}
+
+/// @func apply_dash(speed, direction)
+apply_dash = function(_spd, _dir){
+	hsp = approach(hsp, lengthdir_x(_spd, _dir), abs(lengthdir_x(_spd, _dir)) / dash_accel_time)
+	vsp = approach(vsp, lengthdir_y(_spd, _dir), abs(lengthdir_y(_spd, _dir)) / dash_accel_time)
 }
 
 ///@func on_ground()
@@ -63,13 +73,16 @@ can_jump = function(){
 state = new StateMachine("idle")
 state.add("idle", {
 	enter: function(){
-		image_index = 0
+		hsp = 0
 		vsp = 0
+		
+		image_index = 0
 	},
 	step: function(){
+		if (KEY_DASH) state_switch("dash")
+		
 		var _hdir = KEY_RIGHT - KEY_LEFT
 		if (_hdir != 0) state_switch("walk")
-		hsp = approach(hsp, 0, walksp / deccel_time)
 		
 		if (KEY_JUMP && can_jump()) state_switch("rising")
 		
@@ -79,13 +92,19 @@ state.add("idle", {
 state.add("walk", {
 	enter: function(){
 		image_index = 0
+		
+		accel_spd = walksp / accel_time
+		deccel_spd = walksp / deccel_time
 	},
 	step: function(){
 		var _hdir = KEY_RIGHT - KEY_LEFT
-		if (_hdir == 0) state_switch("idle")
-		else image_xscale = _hdir
+		if (_hdir == 0 && hsp == 0){
+			state_switch("idle")
+		}
 		
-		change_hsp(_hdir)
+		if (_hdir != 0) image_xscale = _hdir
+		
+		change_hsp(_hdir, accel_spd, deccel_spd)
 		
 		if (KEY_JUMP && can_jump()) state_switch("rising")
 		
@@ -95,12 +114,15 @@ state.add("walk", {
 state.add("rising", {
 	enter: function(){
 		vsp += j_velocity
+		
+		accel_spd = walksp / accel_time
+		deccel_spd = walksp / deccel_time
 	},
 	step: function(){
 		var _hdir = KEY_RIGHT - KEY_LEFT
 		if (_hdir != 0) image_xscale = _hdir
 		
-		change_hsp(_hdir)
+		change_hsp(_hdir, accel_spd, deccel_spd)
 		
 		//if rising and not pressing jump
 		if (!KEY_JUMP){
@@ -116,12 +138,15 @@ state.add("rising", {
 state.add("falling", {
 	enter: function(){
 		image_index = 0
+		
+		accel_spd = walksp / accel_time
+		deccel_spd = walksp / deccel_time
 	},
 	step: function(){
 		var _hdir = KEY_RIGHT - KEY_LEFT
 		if (_hdir != 0) image_xscale = _hdir
 		
-		change_hsp(_hdir)
+		change_hsp(_hdir, accel_spd, deccel_spd)
 		
 		vsp += grv
 		
@@ -131,4 +156,3 @@ state.add("falling", {
 		}
 	}
 })
-
