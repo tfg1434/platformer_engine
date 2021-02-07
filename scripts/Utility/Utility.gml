@@ -26,6 +26,7 @@ function array_create_nd() {
 /// @returns	{real}						Changed value
 /// @author		Meseta
 function approach(_val1, _val2, _inc) {
+	if (_inc < 0) throw("approach: amount is negative")
 	return (_val1 + clamp(_val2-_val1, -_inc, _inc));
 }
 
@@ -181,4 +182,8 @@ function frames_to_ms(_f){
 	return 1000 * _f / FPS
 }
 
-
+function in(value, array) {
+  for (var i = 0; i < array_length(array); i++)
+    if (value == array[i]) return true;
+  return false;
+}

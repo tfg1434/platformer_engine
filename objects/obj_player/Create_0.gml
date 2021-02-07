@@ -15,6 +15,7 @@ Can also use hitbox pinching when jumping;
 
 hsp = 0
 vsp = 0
+dir = 0
 
 j_height = 48
 time_to_apex = 18
@@ -29,8 +30,8 @@ deccel_time = 3
 walksp = 3
 
 dashsp = 10
-dash_accel_time = 5
-dash_deccel_time = 18
+dash_deccel_time = 5
+can_dash = false
 
 ///@func move_n_collide()
 move_n_collide = function(){
@@ -54,12 +55,6 @@ change_hsp = function(_hdir, _accel_spd, _deccel_spd){
 	else hsp = approach(hsp, 0, _deccel_spd)
 }
 
-/// @func apply_dash(speed, direction)
-apply_dash = function(_spd, _dir){
-	hsp = approach(hsp, lengthdir_x(_spd, _dir), abs(lengthdir_x(_spd, _dir)) / dash_accel_time)
-	vsp = approach(vsp, lengthdir_y(_spd, _dir), abs(lengthdir_y(_spd, _dir)) / dash_accel_time)
-}
-
 ///@func on_ground()
 on_ground = function(){
 	return place_meeting(x, y + 1, obj_wall)
@@ -68,6 +63,12 @@ on_ground = function(){
 ///@func can_jump()
 can_jump = function(){
 	return on_ground() && KEY_JUMP_PRESSED
+}
+
+///@func apply_dash(enum dir, spd)
+apply_dash = function(_dir, _spd){
+	hsp = lengthdir_x(_spd, _dir)
+	vsp = lengthdir_y(_spd, _dir)
 }
 
 state = new StateMachine("idle")
@@ -79,14 +80,14 @@ state.add("idle", {
 		image_index = 0
 	},
 	step: function(){
-		if (KEY_DASH) state_switch("dash")
-		
 		var _hdir = KEY_RIGHT - KEY_LEFT
 		if (_hdir != 0) state_switch("walk")
 		
 		if (KEY_JUMP && can_jump()) state_switch("rising")
 		
 		vsp += grv
+		
+		if (KEY_DASH && can_dash) state_switch("dash")
 	}
 })
 state.add("walk", {
@@ -109,6 +110,8 @@ state.add("walk", {
 		if (KEY_JUMP && can_jump()) state_switch("rising")
 		
 		vsp += grv
+		
+		if (KEY_DASH && can_dash) state_switch("dash")
 	}
 })
 state.add("rising", {
@@ -133,6 +136,8 @@ state.add("rising", {
 		}
 		
 		if (vsp >= 0) state_switch("falling")
+		
+		if (KEY_DASH && can_dash) state_switch("dash")
 	}
 })
 state.add("falling", {
@@ -141,6 +146,8 @@ state.add("falling", {
 		
 		accel_spd = walksp / accel_time
 		deccel_spd = walksp / deccel_time
+		
+		if (get_previous_state(id) == "dash") vsp *= 0.3
 	},
 	step: function(){
 		var _hdir = KEY_RIGHT - KEY_LEFT
@@ -153,6 +160,23 @@ state.add("falling", {
 		if (on_ground()){
 			if (_hdir == 0) state_switch("idle")
 			else state_switch("walk")
+		}
+		
+		if (KEY_DASH && can_dash) state_switch("dash")
+	}
+})
+state.add("dash", {
+	//should swap the timer out with an animation end
+	enter: function(){
+		image_index = 0
+		can_dash = false
+		apply_dash(dir, dashsp)
+		temp_timer = new global.wait.Waiter(5)
+	},
+	step: function(){
+		if (global.wait.do_wait(temp_timer)){
+			if (on_ground()) state_switch("walk")
+			else state_switch("falling")
 		}
 	}
 })
