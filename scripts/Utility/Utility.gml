@@ -182,8 +182,17 @@ function frames_to_ms(_f){
 	return 1000 * _f / FPS
 }
 
+///@func in(value, array)
 function in(value, array) {
-  for (var i = 0; i < array_length(array); i++)
-    if (value == array[i]) return true;
-  return false;
+	for (var i = 0; i < array_length(array); i++){
+		if (value == array[i]) return true
+	}
+	return false
+}
+
+///@func len(what)
+function len(_what){
+	if (is_array(_what)) return array_length(_what)
+	if (is_string(_what)) return string_length(_what)
+	else throw("len: type not supported!")
 }

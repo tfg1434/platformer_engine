@@ -15,6 +15,7 @@ Can also use hitbox pinching when jumping;
 
 hsp = 0
 vsp = 0
+vsp_max = 4
 dir = 0
 
 j_height = 48
@@ -32,6 +33,11 @@ walksp = 3
 dashsp = 10
 dash_deccel_time = 5
 can_dash = false
+
+wall_grv = 0.1
+wall_jump_hsp = 5
+wall_jump_vsp = 5
+wall_vsp_max = 1
 
 ///@func move_n_collide()
 move_n_collide = function(){
@@ -71,6 +77,11 @@ apply_dash = function(_dir, _spd){
 	vsp = lengthdir_y(_spd, _dir)
 }
 
+///@func on_wall
+on_wall = function(){
+	return place_meeting(x + 1, y, obj_wall) - place_meeting(x - 1, y, obj_wall)
+}
+
 state = new StateMachine("idle")
 state.add("idle", {
 	enter: function(){
@@ -86,6 +97,7 @@ state.add("idle", {
 		if (KEY_JUMP && can_jump()) state_switch("rising")
 		
 		vsp += grv
+		if (vsp > vsp_max) vsp = vsp_max
 		
 		if (KEY_DASH && can_dash) state_switch("dash")
 	}
@@ -110,6 +122,7 @@ state.add("walk", {
 		if (KEY_JUMP && can_jump()) state_switch("rising")
 		
 		vsp += grv
+		if (vsp > vsp_max) vsp = vsp_max
 		
 		if (KEY_DASH && can_dash) state_switch("dash")
 	}
@@ -130,9 +143,11 @@ state.add("rising", {
 		//if rising and not pressing jump
 		if (!KEY_JUMP){
 			vsp += stopping_grv
+			if (vsp > vsp_max) vsp = vsp_max
 		} 
 		else{
 			vsp += grv
+			if (vsp > vsp_max) vsp = vsp_max
 		}
 		
 		if (vsp >= 0) state_switch("falling")
@@ -156,6 +171,7 @@ state.add("falling", {
 		change_hsp(_hdir, accel_spd, deccel_spd)
 		
 		vsp += grv
+		if (vsp > vsp_max) vsp = vsp_max
 		
 		if (on_ground()){
 			if (_hdir == 0) state_switch("idle")
@@ -163,6 +179,8 @@ state.add("falling", {
 		}
 		
 		if (KEY_DASH && can_dash) state_switch("dash")
+		
+		if (on_wall() != 0) state_switch("wall_slide")
 	}
 })
 state.add("dash", {
@@ -177,6 +195,51 @@ state.add("dash", {
 		if (global.wait.do_wait(temp_timer)){
 			if (on_ground()) state_switch("walk")
 			else state_switch("falling")
+		}
+	}
+})
+state.add("wall_slide", {
+	enter: function(){
+		image_index = 0
+		vsp = 0
+	},
+	step: function(){
+		if (on_ground()) state_switch("idle")
+		if (on_wall() == 0) state_switch("falling")
+		if (on_wall() != 0) image_xscale = on_wall()
+		
+		var _hdir = KEY_RIGHT - KEY_LEFT
+		if (on_wall() == _hdir && on_wall() != 0){
+			vsp += wall_grv
+			if (vsp > wall_vsp_max) vsp = wall_vsp_max
+		}
+		else{
+			vsp += grv
+			if (vsp > vsp_max) vsp = vsp_max
+		}
+		
+		if (KEY_JUMP_PRESSED){
+			state_switch("wall_jump")
+		}
+	}
+})
+state.add("wall_jump", {
+	enter: function(){
+		hsp = -on_wall() * wall_jump_hsp
+		vsp = -wall_jump_vsp
+		
+		jump_timer = new global.wait.Waiter(10)
+	},
+	step: function(){
+		if (on_wall() != 0) state_switch("wall_slide")
+		
+		if (global.wait.do_wait(jump_timer) && !on_ground()){
+			global.wait.once(jump_timer)
+			vsp *= 0.3
+			state_switch("falling")
+		}
+		else if (global.wait.do_wait(jump_timer) && on_ground()){
+			state_switch("walk")
 		}
 	}
 })
