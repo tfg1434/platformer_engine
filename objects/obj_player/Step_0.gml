@@ -1,5 +1,4 @@
 state.step()
-move_n_collide()
 
 if (on_ground()) can_dash = true
 

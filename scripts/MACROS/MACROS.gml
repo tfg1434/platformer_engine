@@ -9,7 +9,7 @@
 //------------------------
 
 #macro FPS 60
-
+#macro WALL_SIZE 16
 
 //Controls
 #macro KEY_JUMP keyboard_check(ord("Z"))

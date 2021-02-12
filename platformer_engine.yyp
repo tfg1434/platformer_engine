@@ -2,13 +2,15 @@
   "resources": [
     {"id":{"name":"obj_player","path":"objects/obj_player/obj_player.yy",},"order":0,},
     {"id":{"name":"obj_wall","path":"objects/obj_wall/obj_wall.yy",},"order":1,},
+    {"id":{"name":"spr_player_walk_pinched","path":"sprites/spr_player_walk_pinched/spr_player_walk_pinched.yy",},"order":1,},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},"order":0,},
     {"id":{"name":"Easings","path":"scripts/Easings/Easings.yy",},"order":0,},
     {"id":{"name":"MACROS","path":"scripts/MACROS/MACROS.yy",},"order":1,},
     {"id":{"name":"SnowState","path":"scripts/SnowState/SnowState.yy",},"order":2,},
     {"id":{"name":"Utility","path":"scripts/Utility/Utility.yy",},"order":3,},
+    {"id":{"name":"spr_player_jump_pinched","path":"sprites/spr_player_jump_pinched/spr_player_jump_pinched.yy",},"order":2,},
     {"id":{"name":"spr_player_idle","path":"sprites/spr_player_idle/spr_player_idle.yy",},"order":0,},
-    {"id":{"name":"spr_wall","path":"sprites/spr_wall/spr_wall.yy",},"order":1,},
+    {"id":{"name":"spr_wall","path":"sprites/spr_wall/spr_wall.yy",},"order":3,},
     {"id":{"name":"WaitLibrary","path":"scripts/WaitLibrary/WaitLibrary.yy",},"order":4,},
   ],
   "Options": [

@@ -194,5 +194,11 @@ function in(value, array) {
 function len(_what){
 	if (is_array(_what)) return array_length(_what)
 	if (is_string(_what)) return string_length(_what)
-	else throw("len: type not supported!")
+	else throw "len: type not supported!"
+}
+
+///@func round_not_bankers(val)
+function round_not_bankers(_val){
+	var num = _val div 1
+	return _val mod 1 >= 0.5 ? num + 1 : num
 }
