@@ -40,8 +40,8 @@ dash_deccel_time = 5
 can_dash = false
 
 wall_grv = 0.1
-wall_jump_hsp = 8
-wall_jump_vsp = 7
+wall_jump_hsp = 5
+wall_jump_vsp = 5
 wall_vsp_max = 1
 wall_climb_vsp = 4
 wall_climb_accel = 5//in frames
@@ -112,7 +112,7 @@ state.add("walk", {
 		}
 		
 		//mask_index = spr_player_walk_pinched
-		//move_n_collide()
+		move_n_collide()
 		//mask_index = spr_player_idle
 		//while (place_meeting(x, y, obj_wall)) y--
 	}
@@ -145,6 +145,11 @@ state.add("rising", {
 		if (vsp >= 0){
 			state_switch("falling")
 			return
+			
+			if (on_wall != 0){
+				state_switch("wall_slide")
+				return
+			}
 		}
 		
 		if (KEY_DASH && can_dash){
