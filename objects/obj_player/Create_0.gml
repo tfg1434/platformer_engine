@@ -27,7 +27,8 @@ j_damping = 0.8
 //solve for grv dynamically
 grv = (2 * j_height) / power(time_to_apex, 2)
 j_velocity = -abs(grv) * time_to_apex
-stopping_grv = grv + 0.45
+stopping_grv = grv + 0.35
+
 can_jump_timer = 0
 coyote_time = 15
 
@@ -58,22 +59,22 @@ state.add("idle", {
 		var _hdir = KEY_RIGHT - KEY_LEFT
 		if (_hdir != 0){
 			state_switch("walk")
-			return
+			exit
 		}
 		
 		if (KEY_JUMP && can_jump()){
 			state_switch("rising")
-			return
+			exit
 		}
 		
 		if (!on_ground()){
 			state_switch("falling")
-			return
+			exit
 		}
 		
 		if (KEY_DASH && can_dash){
 			state_switch("dash")
-			return
+			exit
 		}
 		
 		move_n_collide()
@@ -90,7 +91,7 @@ state.add("walk", {
 		var _hdir = KEY_RIGHT - KEY_LEFT
 		if (_hdir == 0 && hsp == 0){
 			state_switch("idle")
-			return
+			exit
 		}
 		
 		if (_hdir != 0) image_xscale = _hdir
@@ -98,28 +99,30 @@ state.add("walk", {
 		
 		if (KEY_JUMP && can_jump()){
 			state_switch("rising")
-			return
+			exit
 		}
 		
 		if (!on_ground()){
 			state_switch("falling")
-			return
+			exit
 		}
 		
 		if (KEY_DASH && can_dash){
 			state_switch("dash")
-			return
+			exit
 		}
 		
-		//mask_index = spr_player_walk_pinched
+		mask_index = spr_player_walk_pinched
 		move_n_collide()
-		//mask_index = spr_player_idle
-		//while (place_meeting(x, y, obj_wall)) y--
+		mask_index = spr_player_idle
+		while (place_meeting(x, y, obj_wall)) y--
 	}
 })
 state.add("rising", {
 	enter: function(){
-		vsp += j_velocity
+		print [j_velocity, grv]
+		
+		vsp = j_velocity
 		
 		accel_spd = walksp / accel_time
 		deccel_spd = walksp / deccel_time
@@ -144,20 +147,23 @@ state.add("rising", {
 		
 		if (vsp >= 0){
 			state_switch("falling")
-			return
+			exit
 			
-			if (on_wall != 0){
-				state_switch("wall_slide")
-				return
-			}
+			//if (on_wall != 0){
+			//	state_switch("wall_slide")
+			//	exit
+			//}
 		}
 		
 		if (KEY_DASH && can_dash){
 			state_switch("dash")
-			return
+			exit
 		}
 		
+		mask_index = spr_player_jump_pinched
 		move_n_collide()
+		mask_index = spr_player_idle
+		while (place_meeting(x, y, obj_wall)) y--
 	}
 })
 state.add("falling", {
@@ -179,7 +185,7 @@ state.add("falling", {
 		if (state.get_previous() == "walk" || state.get_previous() == "idle"){
 			if (++can_jump_timer < coyote_time && KEY_JUMP_PRESSED){
 				state_switch("rising")
-				return
+				exit
 			}
 		}
 		
@@ -194,25 +200,28 @@ state.add("falling", {
 		if (on_ground()){
 			if (_hdir == 0){
 				state_switch("idle")
-				return
+				exit
 			}
 			else{
 				state_switch("walk")
-				return
+				exit
 			}
 		}
 		
 		if (KEY_DASH && can_dash){
 			state_switch("dash")
-			return
+			exit
 		}
 		
 		if (on_wall() != 0){
 			state_switch("wall_slide")
-			return
+			exit
 		}
 		
+		mask_index = spr_player_jump_pinched
 		move_n_collide()
+		mask_index = spr_player_idle
+		while (place_meeting(x, y, obj_wall)) y--
 	},
 	leave: function(){
 		can_jump_timer = 0
@@ -220,6 +229,7 @@ state.add("falling", {
 })
 state.add("dash", {
 	//should swap the timer out with an animation end
+	//give it a very small hitbox so that you can avoid enemies and sail pass walls
 	enter: function(){
 		image_index = 0
 		can_dash = false
@@ -232,11 +242,11 @@ state.add("dash", {
 			vsp = 0
 			if (on_ground()){
 				state_switch("walk")
-				return
+				exit
 			}
 			else{
 				state_switch("falling")
-				return
+				exit
 			}
 		}
 		
@@ -246,21 +256,21 @@ state.add("dash", {
 state.add("wall_slide", {
 	enter: function(){
 		image_index = 0
-		vsp = 0
+		if (state.get_previous() == "wall_jump") vsp = 0
 	},
 	step: function(){
 		if (KEY_JUMP_PRESSED){
 			state_switch("wall_jump")
 			move_n_collide()
-			return
+			exit
 		}
 		if (on_ground()){
 			state_switch("idle")
-			return
+			exit
 		}
 		if (on_wall() == 0){
 			state_switch("falling")
-			return
+			exit
 		}
 		image_xscale = on_wall()
 		
@@ -287,18 +297,18 @@ state.add("wall_jump", {
 	step: function(){
 		if (on_wall() != 0){
 			state_switch("wall_slide")
-			return
+			exit
 		}
 		
 		if (global.wait.do_wait(jump_timer) && !on_ground()){
 			global.wait.once(jump_timer)
-			vsp *= 0.3
+			vsp = 0
 			state_switch("falling")
-			return
+			exit
 		}
 		else if (global.wait.do_wait(jump_timer) && on_ground()){
 			state_switch("walk")
-			return
+			exit
 		}
 		
 		move_n_collide()

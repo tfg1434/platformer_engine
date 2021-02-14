@@ -8,9 +8,9 @@
     {"id":{"name":"MACROS","path":"scripts/MACROS/MACROS.yy",},"order":1,},
     {"id":{"name":"SnowState","path":"scripts/SnowState/SnowState.yy",},"order":2,},
     {"id":{"name":"Utility","path":"scripts/Utility/Utility.yy",},"order":3,},
-    {"id":{"name":"spr_player_jump_pinched","path":"sprites/spr_player_jump_pinched/spr_player_jump_pinched.yy",},"order":2,},
     {"id":{"name":"spr_player_idle","path":"sprites/spr_player_idle/spr_player_idle.yy",},"order":0,},
     {"id":{"name":"spr_wall","path":"sprites/spr_wall/spr_wall.yy",},"order":3,},
+    {"id":{"name":"spr_player_jump_pinched","path":"sprites/spr_player_jump_pinched/spr_player_jump_pinched.yy",},"order":2,},
     {"id":{"name":"WaitLibrary","path":"scripts/WaitLibrary/WaitLibrary.yy",},"order":4,},
   ],
   "Options": [
