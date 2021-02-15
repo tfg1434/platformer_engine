@@ -19,7 +19,6 @@ event_user(0)
 hsp = 0
 vsp = 0
 vsp_max = 4
-dir = 0
 
 j_height = 48
 time_to_apex = 18
@@ -56,13 +55,13 @@ state.add("idle", {
 		image_index = 0
 	},
 	step: function(){
-		var _hdir = KEY_RIGHT - KEY_LEFT
+		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir != 0){
 			state_switch("walk")
 			exit
 		}
 		
-		if (KEY_JUMP && can_jump()){
+		if (can_jump()){
 			state_switch("rising")
 			exit
 		}
@@ -72,7 +71,7 @@ state.add("idle", {
 			exit
 		}
 		
-		if (KEY_DASH && can_dash){
+		if (input_check_pressed(VERB.DASH) && can_dash){
 			state_switch("dash")
 			exit
 		}
@@ -88,7 +87,7 @@ state.add("walk", {
 		deccel_spd = walksp / deccel_time
 	},
 	step: function(){
-		var _hdir = KEY_RIGHT - KEY_LEFT
+		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir == 0 && hsp == 0){
 			state_switch("idle")
 			exit
@@ -97,7 +96,7 @@ state.add("walk", {
 		if (_hdir != 0) image_xscale = _hdir
 		change_hsp(_hdir, accel_spd, deccel_spd)
 		
-		if (KEY_JUMP && can_jump()){
+		if (can_jump()){
 			state_switch("rising")
 			exit
 		}
@@ -107,7 +106,7 @@ state.add("walk", {
 			exit
 		}
 		
-		if (KEY_DASH && can_dash){
+		if (input_check_pressed(VERB.DASH) && can_dash){
 			state_switch("dash")
 			exit
 		}
@@ -130,13 +129,13 @@ state.add("rising", {
 	step: function(){
 		//if (place_meeting(x, y + vsp, obj_wall)) mask_index = spr_player_jump_pinched
 		
-		var _hdir = KEY_RIGHT - KEY_LEFT
+		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir != 0) image_xscale = _hdir
 		
 		change_hsp(_hdir, accel_spd, deccel_spd)
 		
 		//if rising and not pressing jump
-		if (!KEY_JUMP){
+		if (!input_check(VERB.JUMP)){
 			vsp += stopping_grv
 			if (vsp > vsp_max) vsp = vsp_max
 		} 
@@ -148,14 +147,17 @@ state.add("rising", {
 		if (vsp >= 0){
 			state_switch("falling")
 			exit
-			
-			//if (on_wall != 0){
-			//	state_switch("wall_slide")
-			//	exit
-			//}
 		}
 		
-		if (KEY_DASH && can_dash){
+		if (on_wall() != 0 && input_check_pressed(VERB.JUMP)){
+			print "hi"
+			
+			state_switch("wall_jump")
+			move_n_collide()
+			exit
+		}
+		
+		if (input_check_pressed(VERB.DASH) && can_dash){
 			state_switch("dash")
 			exit
 		}
@@ -183,13 +185,13 @@ state.add("falling", {
 	step: function(){
 		//Coyote time
 		if (state.get_previous() == "walk" || state.get_previous() == "idle"){
-			if (++can_jump_timer < coyote_time && KEY_JUMP_PRESSED){
+			if (++can_jump_timer < coyote_time && input_check_pressed(VERB.UP)){
 				state_switch("rising")
 				exit
 			}
 		}
 		
-		var _hdir = KEY_RIGHT - KEY_LEFT
+		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir != 0) image_xscale = _hdir
 		
 		change_hsp(_hdir, accel_spd, deccel_spd)
@@ -198,6 +200,8 @@ state.add("falling", {
 		if (vsp > vsp_max) vsp = vsp_max
 		
 		if (on_ground()){
+			can_dash = true
+			
 			if (_hdir == 0){
 				state_switch("idle")
 				exit
@@ -208,14 +212,23 @@ state.add("falling", {
 			}
 		}
 		
-		if (KEY_DASH && can_dash){
+		if (input_check_pressed(VERB.DASH) && can_dash){
+			print [can_dash, on_ground()]
+			
 			state_switch("dash")
 			exit
 		}
 		
 		if (on_wall() != 0){
-			state_switch("wall_slide")
-			exit
+			if (input_check_pressed(VERB.JUMP)){
+				state_switch("wall_jump")
+				move_n_collide()
+				exit
+			}
+			if (_hdir == on_wall()){
+				state_switch("wall_slide")
+				exit
+			}
 		}
 		
 		mask_index = spr_player_jump_pinched
@@ -233,8 +246,10 @@ state.add("dash", {
 	enter: function(){
 		image_index = 0
 		can_dash = false
-		apply_dash(dir, dashsp)
+		apply_dash(dir(), dashsp)
 		temp_timer = new global.wait.Waiter(8)
+		
+		print state.get_previous()
 	},
 	step: function(){
 		if (global.wait.do_wait(temp_timer)){
@@ -259,12 +274,13 @@ state.add("wall_slide", {
 		if (state.get_previous() == "wall_jump") vsp = 0
 	},
 	step: function(){
-		if (KEY_JUMP_PRESSED){
+		if (input_check_pressed(VERB.JUMP)){
 			state_switch("wall_jump")
 			move_n_collide()
 			exit
 		}
 		if (on_ground()){
+			can_dash = true
 			state_switch("idle")
 			exit
 		}
@@ -274,14 +290,14 @@ state.add("wall_slide", {
 		}
 		image_xscale = on_wall()
 		
-		var _hdir = KEY_RIGHT - KEY_LEFT
+		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
+		
 		if (on_wall() == _hdir && on_wall() != 0){
 			vsp += wall_grv
 			if (vsp > wall_vsp_max) vsp = wall_vsp_max
 		}
 		else{
-			vsp += grv
-			if (vsp > vsp_max) vsp = vsp_max
+			state_switch("falling")
 		}
 		
 		move_n_collide()
@@ -314,3 +330,4 @@ state.add("wall_jump", {
 		move_n_collide()
 	}
 })
+/**/
