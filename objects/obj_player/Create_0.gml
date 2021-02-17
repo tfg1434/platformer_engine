@@ -14,6 +14,8 @@ Can also use hitbox pinching when jumping;
 Slide over corners when you barely clip them
 */
 
+//polish le dash (look at the source)
+
 event_user(0)
 
 hsp = 0
@@ -39,7 +41,7 @@ accel_time = 6 //in frames
 deccel_time = 3
 walksp = 3
 
-dashsp = 10
+dashsp = 9
 dash_deccel_time = 5
 can_dash = false
 
@@ -74,6 +76,7 @@ state.add("idle", {
 			state_switch("falling")
 			exit
 		}
+		else can_dash = true
 		
 		if (check_dash()){
 			state_switch("dash")
@@ -109,6 +112,7 @@ state.add("walk", {
 			state_switch("falling")
 			exit
 		}
+		else can_dash = true
 		
 		if (check_dash()){
 			state_switch("dash")
@@ -250,13 +254,12 @@ state.add("dash", {
 		can_dash = false
 		apply_dash(dir(), dashsp)
 		temp_timer = new global.wait.Waiter(8)
-		
-		print state.get_previous()
 	},
 	step: function(){
 		if (global.wait.do_wait(temp_timer)){
-			hsp = 0
-			vsp = 0
+			hsp = clamp(hsp, -walksp, walksp)
+			if (vsp != 0) vsp = -vsp_max
+			
 			if (on_ground()){
 				state_switch("walk")
 				exit

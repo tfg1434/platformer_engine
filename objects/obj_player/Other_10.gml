@@ -62,6 +62,8 @@ check_jump = function(){
 
 ///@func check_dash()
 check_dash = function(){
+	print [can_dash, input_check_pressed(VERB.DASH, 0, dash_buffer_time)]
+	
 	return can_dash && input_check_pressed(VERB.DASH, 0, dash_buffer_time)
 }
 
