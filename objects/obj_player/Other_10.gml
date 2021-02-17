@@ -44,7 +44,7 @@ on_ground = function(){
 	return place_meeting(x, y + 1, obj_wall)
 }
 
-///@func apply_dash(enum dir, spd)
+///@func apply_dash(dir, spd)
 apply_dash = function(_dir, _spd){
 	hsp = lengthdir_x(_spd, _dir)
 	vsp = lengthdir_y(_spd, _dir)
@@ -55,9 +55,14 @@ on_wall = function(){
 	return place_meeting(x + 1, y, obj_wall) - place_meeting(x - 1, y, obj_wall)
 }
 
-///@func can_jump()
-can_jump = function(){
-	return on_ground() && input_check_pressed(VERB.JUMP)
+///@func check_jump()
+check_jump = function(){
+	return on_ground() && input_check_pressed(VERB.JUMP, 0, jump_buffer_time)
+}
+
+///@func check_dash()
+check_dash = function(){
+	return can_dash && input_check_pressed(VERB.DASH, 0, dash_buffer_time)
 }
 
 ///@func dir()

@@ -31,6 +31,10 @@ stopping_grv = grv + 0.35
 can_jump_timer = 0
 coyote_time = 15
 
+//input buffering times (frames)
+jump_buffer_time = 12
+dash_buffer_time = 6
+
 accel_time = 6 //in frames
 deccel_time = 3
 walksp = 3
@@ -61,7 +65,7 @@ state.add("idle", {
 			exit
 		}
 		
-		if (can_jump()){
+		if (check_jump()){
 			state_switch("rising")
 			exit
 		}
@@ -71,7 +75,7 @@ state.add("idle", {
 			exit
 		}
 		
-		if (input_check_pressed(VERB.DASH) && can_dash){
+		if (check_dash()){
 			state_switch("dash")
 			exit
 		}
@@ -96,7 +100,7 @@ state.add("walk", {
 		if (_hdir != 0) image_xscale = _hdir
 		change_hsp(_hdir, accel_spd, deccel_spd)
 		
-		if (can_jump()){
+		if (check_jump()){
 			state_switch("rising")
 			exit
 		}
@@ -106,7 +110,7 @@ state.add("walk", {
 			exit
 		}
 		
-		if (input_check_pressed(VERB.DASH) && can_dash){
+		if (check_dash()){
 			state_switch("dash")
 			exit
 		}
@@ -157,7 +161,7 @@ state.add("rising", {
 			exit
 		}
 		
-		if (input_check_pressed(VERB.DASH) && can_dash){
+		if (check_dash()){
 			state_switch("dash")
 			exit
 		}
@@ -212,9 +216,7 @@ state.add("falling", {
 			}
 		}
 		
-		if (input_check_pressed(VERB.DASH) && can_dash){
-			print [can_dash, on_ground()]
-			
+		if (check_dash()){
 			state_switch("dash")
 			exit
 		}
