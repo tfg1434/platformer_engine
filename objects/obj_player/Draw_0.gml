@@ -1,1 +1,1 @@
-draw_sprite(sprite_index, image_index, round_not_bankers(x), round_not_bankers(y))
+draw_sprite(sprite_index, image_index, round(x), round(y))

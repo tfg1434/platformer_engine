@@ -39,12 +39,14 @@ move_n_collide = function(){
 	}
 }
 
-///@func change_hsp(hdir, accel, deccel)
-change_hsp = function(_hdir, _accel_spd, _deccel_spd){
+///@func walk()
+walk = function(){
+	var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
+	
 	if (input_check(VERB.RIGHT) ^ input_check(VERB.LEFT)){
-		hsp = approach(hsp, _hdir * walksp, _accel_spd)
+		hsp = approach(hsp, _hdir * walksp, walksp / accel_time)
 	}
-	else hsp = approach(hsp, 0, _deccel_spd)
+	else hsp = approach(hsp, 0, walksp / deccel_time)
 }
 
 ///@func on_ground()

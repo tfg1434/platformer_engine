@@ -45,8 +45,13 @@ dashsp = 8
 can_dash = false
 
 wall_grv = 0.1
+
 wall_jump_hsp = 3
-wall_jump_vsp = 3
+wall_jump_h = 48
+wall_jump_time_to_apex = 18
+wall_jump_grv = (2 * wall_jump_h) / power(wall_jump_time_to_apex, 2)
+wall_jump_j_vel = -abs(grv) * wall_jump_time_to_apex
+
 wall_vsp_max = 1
 wall_dust_timer = new global.wait.Waiter(3)
 
@@ -99,7 +104,7 @@ state.add("walk", {
 		}
 		
 		if (_hdir != 0) image_xscale = _hdir
-		change_hsp(_hdir, accel_spd, deccel_spd)
+		walk()
 		
 		if (check_jump()){
 			state_switch("rising")
@@ -136,7 +141,7 @@ state.add("rising", {
 		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir != 0) image_xscale = _hdir
 		
-		change_hsp(_hdir, accel_spd, deccel_spd)
+		walk()
 		
 		//if rising and not pressing jump
 		if (!input_check(VERB.JUMP)){
@@ -197,7 +202,7 @@ state.add("falling", {
 		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir != 0) image_xscale = _hdir
 		
-		change_hsp(_hdir, accel_spd, deccel_spd)
+		walk()
 		
 		vsp += grv
 		if (vsp > vsp_max) vsp = vsp_max
@@ -321,29 +326,40 @@ state.add("wall_slide", {
 })
 state.add("wall_jump", {
 	enter: function(){
-		hsp = -on_wall() * wall_jump_hsp
-		vsp = -wall_jump_vsp
+		//wall_jump_timer = new global.wait.Waiter(20)
 		
-		wall_jump_timer = new global.wait.Waiter(20)
+		hsp = -on_wall() * wall_jump_hsp
+		vsp = wall_jump_j_vel
 	},
 	step: function(){
+		vsp += wall_jump_grv
+		
+		move_n_collide()
+		
 		if (on_wall() != 0){
 			state_switch("wall_slide")
 			exit
 		}
 		
-		if (global.wait.do_wait(wall_jump_timer) && !on_ground()){
-			global.wait.once(wall_jump_timer)
-			vsp = 0
+		if (vsp >= 0){
 			state_switch("falling")
 			exit
 		}
-		else if (global.wait.do_wait(wall_jump_timer) && on_ground()){
+		
+		if (on_ground()){
 			state_switch("walk")
 			exit
 		}
 		
-		move_n_collide()
+		//if (global.wait.do_wait(wall_jump_timer) && !on_ground()){
+		//	global.wait.once(wall_jump_timer)
+		//	state_switch("falling")
+		//	exit
+		//}
+		//else if (global.wait.do_wait(wall_jump_timer) && on_ground()){
+		//	state_switch("walk")
+		//	exit
+		//}
 	}
 })
 /**/

@@ -11,6 +11,7 @@
 #macro FPS game_get_speed(gamespeed_fps)
 #macro WIN_W window_get_width()
 #macro WIN_H window_get_height()
+#macro round round_not_bankers
 
 
 
