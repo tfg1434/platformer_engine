@@ -1,19 +1,27 @@
 ///@desc METHOD EVENT
 ///@func move_n_collide()
 move_n_collide = function(){
-	// if (place_meeting(x + hsp, y, obj_wall)){
-	// 	while (!place_meeting(x + sign(hsp), y, obj_wall)) x += sign(hsp)
-	// 	hsp = 0
-	// }
-	// x += hsp
-	// if (place_meeting(x, y + vsp, obj_wall)){
-	// 	while (!place_meeting(x, y + sign(vsp), obj_wall)) y += sign(vsp)
-	// 	vsp = 0
-	// }
-	// y += vsp
+	//repeat(abs(hsp)) {
+	//	if (!place_meeting(x + sign(hsp), y, obj_wall)) {
+	//        x += sign(hsp);
+	//    } else {
+	//        hsp = 0;
+	//        break;
+	//    }
+	//}
+	
+	//repeat(abs(vsp)) {
+	//    if (!place_meeting(x, y + sign(vsp), obj_wall)) {
+	//        y += sign(vsp);
+	//    } else {
+	//        vsp = 0;
+	//        break;
+	//    }
+	//}
+	
 	
 	repeat(abs(hsp)) {
-		if (!place_meeting(x + sign(hsp), y, obj_wall)) {
+		if (!place_meeting_array(x + sign(hsp), y, global.solids)) {
 	        x += sign(hsp);
 	    } else {
 	        hsp = 0;
@@ -22,7 +30,7 @@ move_n_collide = function(){
 	}
 	
 	repeat(abs(vsp)) {
-	    if (!place_meeting(x, y + sign(vsp), obj_wall)) {
+	    if (!place_meeting_array(x, y + sign(vsp), global.solids)) {
 	        y += sign(vsp);
 	    } else {
 	        vsp = 0;
@@ -41,7 +49,7 @@ change_hsp = function(_hdir, _accel_spd, _deccel_spd){
 
 ///@func on_ground()
 on_ground = function(){
-	return place_meeting(x, y + 1, obj_wall)
+	return place_meeting_array(x, y + 1, global.solids)
 }
 
 ///@func apply_dash(dir, spd)
@@ -52,7 +60,7 @@ apply_dash = function(_dir, _spd){
 
 ///@func on_wall
 on_wall = function(){
-	return place_meeting(x + 1, y, obj_wall) - place_meeting(x - 1, y, obj_wall)
+	return place_meeting_array(x + 1, y, global.can_jump_off) - place_meeting_array(x - 1, y, global.can_jump_off)
 }
 
 ///@func check_jump()
@@ -62,8 +70,6 @@ check_jump = function(){
 
 ///@func check_dash()
 check_dash = function(){
-	print [can_dash, input_check_pressed(VERB.DASH, 0, dash_buffer_time)]
-	
 	return can_dash && input_check_pressed(VERB.DASH, 0, dash_buffer_time)
 }
 

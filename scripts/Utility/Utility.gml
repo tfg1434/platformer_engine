@@ -1,3 +1,27 @@
+/// @desc Calls some procedure for each element of an array.
+/// @param {array} variable The array to apply the function to.
+/// @param {script} f The function to apply to all elements in the array.
+/// @param {int} [n] The number of elements to loop through.
+/// @param {int} [i=0] The index of the array to start at.
+///@func array_foreach(array, func)
+function array_foreach(_array, _f) {
+	var count = argument_count > 2 ? argument[2] : array_length(_array);
+	var start = argument_count > 3 ? argument[3] : 0;
+	for (var i = 0; i < count; i += 1) {
+		_f(_array[start + i]);
+	}
+}
+
+///@desc Calls some procedure for each element of a list
+///@func ds_list_foreach(list, func)
+function ds_list_foreach(_list, _f) {
+	var count = argument_count > 2 ? argument[2] : ds_list_size(_list)
+	var start = argument_count > 3 ? argument[3] : 0;
+	for (var i = 0; i < count; i += 1) {
+		_f(_list[| start + i]);
+	}
+}
+
 /// @func array_create_nd(size1, size2,...)
 function array_create_nd() {
     if (argument_count == 0) return 0;
@@ -193,7 +217,8 @@ function in(value, array) {
 ///@func len(what)
 function len(_what){
 	if (is_array(_what)) return array_length(_what)
-	if (is_string(_what)) return string_length(_what)
+	else if (is_string(_what)) return string_length(_what)
+	else if (ds_exists(_what, ds_type_list)) return ds_list_size(_what)
 	else throw "len: type not supported!"
 }
 
@@ -202,3 +227,20 @@ function round_not_bankers(_val){
 	var num = _val div 1
 	return _val mod 1 >= 0.5 ? num + 1 : num
 }
+
+///@func place_meeting_array(x, y, array)
+function place_meeting_array(_x, _y, _array){
+	for (var _i = 0; _i < array_length(_array); _i++){
+		if (place_meeting(_x, _y, _array[_i])) return true
+	}
+	return false
+}
+
+///@func array_find_index(array, what)
+function array_find_index(_array, _what){
+	for (var _i = 0; _i < array_length(_array); _i++){
+		if (_array[_i] == _what) return _i
+	}
+	return undefined
+}
+

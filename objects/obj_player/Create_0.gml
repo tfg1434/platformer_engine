@@ -24,7 +24,6 @@ vsp_max = 4
 
 j_height = 48
 time_to_apex = 18
-j_damping = 0.8
 //solve for grv dynamically
 grv = (2 * j_height) / power(time_to_apex, 2)
 j_velocity = -abs(grv) * time_to_apex
@@ -34,23 +33,22 @@ can_jump_timer = 0
 coyote_time = 15
 
 //input buffering times (frames)
-jump_buffer_time = 12
+jump_buffer_time = 6
 dash_buffer_time = 6
+wall_jump_buffer = 6
 
 accel_time = 6 //in frames
 deccel_time = 3
-walksp = 3
+walksp = 2.75
 
-dashsp = 9
-dash_deccel_time = 5
+dashsp = 8
 can_dash = false
 
 wall_grv = 0.1
-wall_jump_hsp = 5
-wall_jump_vsp = 5
+wall_jump_hsp = 3
+wall_jump_vsp = 3
 wall_vsp_max = 1
-wall_climb_vsp = 4
-wall_climb_accel = 5//in frames
+wall_dust_timer = new global.wait.Waiter(3)
 
 state = new StateMachine("idle")
 state.add("idle", {
@@ -122,13 +120,11 @@ state.add("walk", {
 		mask_index = spr_player_walk_pinched
 		move_n_collide()
 		mask_index = spr_player_idle
-		while (place_meeting(x, y, obj_wall)) y--
+		while (place_meeting_array(x, y, global.solids)) y--
 	}
 })
 state.add("rising", {
 	enter: function(){
-		print [j_velocity, grv]
-		
 		vsp = j_velocity
 		
 		accel_spd = walksp / accel_time
@@ -158,9 +154,8 @@ state.add("rising", {
 		}
 		
 		if (on_wall() != 0 && input_check_pressed(VERB.JUMP)){
-			print "hi"
-			
 			state_switch("wall_jump")
+			input_consume(VERB.JUMP)
 			move_n_collide()
 			exit
 		}
@@ -173,7 +168,7 @@ state.add("rising", {
 		mask_index = spr_player_jump_pinched
 		move_n_collide()
 		mask_index = spr_player_idle
-		while (place_meeting(x, y, obj_wall)) y--
+		while (place_meeting_array(x, y, global.solids)) y--
 	}
 })
 state.add("falling", {
@@ -228,6 +223,7 @@ state.add("falling", {
 		if (on_wall() != 0){
 			if (input_check_pressed(VERB.JUMP)){
 				state_switch("wall_jump")
+				input_consume(VERB.JUMP)
 				move_n_collide()
 				exit
 			}
@@ -240,7 +236,7 @@ state.add("falling", {
 		mask_index = spr_player_jump_pinched
 		move_n_collide()
 		mask_index = spr_player_idle
-		while (place_meeting(x, y, obj_wall)) y--
+		while (place_meeting_array(x, y, global.solids)) y--
 	},
 	leave: function(){
 		can_jump_timer = 0
@@ -279,8 +275,9 @@ state.add("wall_slide", {
 		if (state.get_previous() == "wall_jump") vsp = 0
 	},
 	step: function(){
-		if (input_check_pressed(VERB.JUMP)){
+		if (input_check_pressed(VERB.JUMP, 0, wall_jump_buffer)){
 			state_switch("wall_jump")
+			input_consume(VERB.JUMP)
 			move_n_collide()
 			exit
 		}
@@ -300,6 +297,20 @@ state.add("wall_slide", {
 		if (on_wall() == _hdir && on_wall() != 0){
 			vsp += wall_grv
 			if (vsp > wall_vsp_max) vsp = wall_vsp_max
+			
+			//--particle effects--
+			var _side = on_wall() == 1 ? bbox_right : bbox_left
+			
+			if (vsp > 0){
+				if (global.wait.do_wait(wall_dust_timer)){
+					global.wait.reset(wall_dust_timer)
+					
+					with (instance_create_layer(_side, y + random_range(-sprite_width / 2, sprite_width / 2), "Instances", obj_dust)){
+						hspeed = other.on_wall() * random_range(0.4, 0.6)
+					}
+				}
+			}
+			//--------------------
 		}
 		else{
 			state_switch("falling")
@@ -313,7 +324,7 @@ state.add("wall_jump", {
 		hsp = -on_wall() * wall_jump_hsp
 		vsp = -wall_jump_vsp
 		
-		jump_timer = new global.wait.Waiter(10)
+		wall_jump_timer = new global.wait.Waiter(20)
 	},
 	step: function(){
 		if (on_wall() != 0){
@@ -321,13 +332,13 @@ state.add("wall_jump", {
 			exit
 		}
 		
-		if (global.wait.do_wait(jump_timer) && !on_ground()){
-			global.wait.once(jump_timer)
+		if (global.wait.do_wait(wall_jump_timer) && !on_ground()){
+			global.wait.once(wall_jump_timer)
 			vsp = 0
 			state_switch("falling")
 			exit
 		}
-		else if (global.wait.do_wait(jump_timer) && on_ground()){
+		else if (global.wait.do_wait(wall_jump_timer) && on_ground()){
 			state_switch("walk")
 			exit
 		}

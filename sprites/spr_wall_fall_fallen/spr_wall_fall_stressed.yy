@@ -2,7 +2,7 @@
   "bboxMode": 0,
   "collisionKind": 1,
   "type": 0,
-  "origin": 4,
+  "origin": 9,
   "preMultiplyAlpha": false,
   "edgeFiltering": false,
   "collisionTolerance": 0,
@@ -24,12 +24,12 @@
   "gridX": 0,
   "gridY": 0,
   "frames": [
-    {"compositeImage":{"FrameId":{"name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","path":"sprites/spr_wall/spr_wall.yy",},"LayerId":null,"resourceVersion":"1.0","name":"","tags":[],"resourceType":"GMSpriteBitmap",},"images":[
-        {"FrameId":{"name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","path":"sprites/spr_wall/spr_wall.yy",},"LayerId":{"name":"83b0d298-626d-4626-987c-f82c0945a50a","path":"sprites/spr_wall/spr_wall.yy",},"resourceVersion":"1.0","name":"","tags":[],"resourceType":"GMSpriteBitmap",},
-      ],"parent":{"name":"spr_wall","path":"sprites/spr_wall/spr_wall.yy",},"resourceVersion":"1.0","name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","tags":[],"resourceType":"GMSpriteFrame",},
+    {"compositeImage":{"FrameId":{"name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","path":"sprites/spr_wall_fall_stressed/spr_wall_fall_stressed.yy",},"LayerId":null,"resourceVersion":"1.0","name":"","tags":[],"resourceType":"GMSpriteBitmap",},"images":[
+        {"FrameId":{"name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","path":"sprites/spr_wall_fall_stressed/spr_wall_fall_stressed.yy",},"LayerId":{"name":"83b0d298-626d-4626-987c-f82c0945a50a","path":"sprites/spr_wall_fall_stressed/spr_wall_fall_stressed.yy",},"resourceVersion":"1.0","name":"","tags":[],"resourceType":"GMSpriteBitmap",},
+      ],"parent":{"name":"spr_wall_fall_stressed","path":"sprites/spr_wall_fall_stressed/spr_wall_fall_stressed.yy",},"resourceVersion":"1.0","name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","tags":[],"resourceType":"GMSpriteFrame",},
   ],
   "sequence": {
-    "spriteId": {"name":"spr_wall","path":"sprites/spr_wall/spr_wall.yy",},
+    "spriteId": {"name":"spr_wall_fall_stressed","path":"sprites/spr_wall_fall_stressed/spr_wall_fall_stressed.yy",},
     "timeUnits": 1,
     "playback": 1,
     "playbackSpeed": 30.0,
@@ -41,7 +41,7 @@
     "moments": {"Keyframes":[],"resourceVersion":"1.0","resourceType":"KeyframeStore<MomentsEventKeyframe>",},
     "tracks": [
       {"name":"frames","spriteId":null,"keyframes":{"Keyframes":[
-            {"id":"8a35f1ac-d8fc-489f-aace-4dfce4b1df59","Key":0.0,"Length":1.0,"Stretch":false,"Disabled":false,"IsCreationKey":false,"Channels":{"0":{"Id":{"name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","path":"sprites/spr_wall/spr_wall.yy",},"resourceVersion":"1.0","resourceType":"SpriteFrameKeyframe",},},"resourceVersion":"1.0","resourceType":"Keyframe<SpriteFrameKeyframe>",},
+            {"id":"48ece798-85b1-46f0-8c00-22c219ce6253","Key":0.0,"Length":1.0,"Stretch":false,"Disabled":false,"IsCreationKey":false,"Channels":{"0":{"Id":{"name":"09c0469e-c5be-48a0-ac60-6cc2a1a92222","path":"sprites/spr_wall_fall_stressed/spr_wall_fall_stressed.yy",},"resourceVersion":"1.0","resourceType":"SpriteFrameKeyframe",},},"resourceVersion":"1.0","resourceType":"Keyframe<SpriteFrameKeyframe>",},
           ],"resourceVersion":"1.0","resourceType":"KeyframeStore<SpriteFrameKeyframe>",},"trackColour":0,"inheritsTrackColour":true,"builtinName":0,"traits":0,"interpolation":1,"tracks":[],"events":[],"modifiers":[],"isCreationTrack":false,"resourceVersion":"1.0","tags":[],"resourceType":"GMSpriteFramesTrack",},
     ],
     "visibleRange": null,
@@ -55,12 +55,12 @@
     "backdropXOffset": 0.0,
     "backdropYOffset": 0.0,
     "xorigin": 8,
-    "yorigin": 8,
+    "yorigin": 6,
     "eventToFunction": {},
     "eventStubScript": null,
-    "parent": {"name":"spr_wall","path":"sprites/spr_wall/spr_wall.yy",},
+    "parent": {"name":"spr_wall_fall_stressed","path":"sprites/spr_wall_fall_stressed/spr_wall_fall_stressed.yy",},
     "resourceVersion": "1.3",
-    "name": "spr_wall",
+    "name": "spr_wall_fall_stressed",
     "tags": [],
     "resourceType": "GMSequence",
   },
@@ -72,7 +72,7 @@
     "path": "folders/Sprites.yy",
   },
   "resourceVersion": "1.0",
-  "name": "spr_wall",
+  "name": "spr_wall_fall_stressed",
   "tags": [],
   "resourceType": "GMSprite",
 }
