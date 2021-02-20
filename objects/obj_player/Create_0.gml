@@ -43,6 +43,7 @@ walksp = 2.75
 
 dashsp = 8
 can_dash = false
+dash_dust_timer = new global.wait.Waiter(3)
 
 wall_grv = 0.1
 
@@ -254,9 +255,19 @@ state.add("dash", {
 		image_index = 0
 		can_dash = false
 		apply_dash(dir(), dashsp)
-		temp_timer = new global.wait.Waiter(8)
+		temp_timer = new global.wait.Waiter(11)
 	},
 	step: function(){
+		if (global.wait.do_wait(dash_dust_timer)){
+			global.wait.reset(dash_dust_timer)
+			instance_create_layer(x, y, "Instances", obj_dash_trail)
+		}
+		
+		with (instance_create_layer(x + random_range(-sprite_width / 2, sprite_width / 2), y + random_range(-sprite_height / 2, sprite_height / 2), "Instances", obj_dash_dust)){
+			hspeed = random_range(-0.1, 0.1)
+			vspeed = random_range(-0.1, 0.1)
+		}
+		
 		if (global.wait.do_wait(temp_timer)){
 			hsp = clamp(hsp, -walksp, walksp)
 			if (vsp != 0) vsp = -vsp_max
@@ -310,7 +321,7 @@ state.add("wall_slide", {
 				if (global.wait.do_wait(wall_dust_timer)){
 					global.wait.reset(wall_dust_timer)
 					
-					with (instance_create_layer(_side, y + random_range(-sprite_width / 2, sprite_width / 2), "Instances", obj_dust)){
+					with (instance_create_layer(_side, y + random_range(-sprite_height / 2, sprite_height / 2), "Instances", obj_dust)){
 						hspeed = other.on_wall() * random_range(0.4, 0.6)
 					}
 				}
