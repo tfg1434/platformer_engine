@@ -1,7 +1,7 @@
 {
   "spriteId": {
-    "name": "spr_dash_dust",
-    "path": "sprites/spr_dash_dust/spr_dash_dust.yy",
+    "name": "spr_dust",
+    "path": "sprites/spr_dust/spr_dust.yy",
   },
   "solid": false,
   "visible": true,

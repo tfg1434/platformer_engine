@@ -43,7 +43,8 @@ walksp = 2.75
 
 dashsp = 8
 can_dash = false
-dash_dust_timer = new global.wait.Waiter(3)
+dash_trail_timer = new global.wait.Waiter(3)
+dash_dust_timer = new global.wait.Waiter(1)
 
 wall_grv = 0.1
 
@@ -258,14 +259,18 @@ state.add("dash", {
 		temp_timer = new global.wait.Waiter(11)
 	},
 	step: function(){
-		if (global.wait.do_wait(dash_dust_timer)){
-			global.wait.reset(dash_dust_timer)
+		if (global.wait.do_wait(dash_trail_timer)){
+			global.wait.reset(dash_trail_timer)
 			instance_create_layer(x, y, "Instances", obj_dash_trail)
 		}
 		
-		with (instance_create_layer(x + random_range(-sprite_width / 2, sprite_width / 2), y + random_range(-sprite_height / 2, sprite_height / 2), "Instances", obj_dash_dust)){
-			hspeed = random_range(-0.1, 0.1)
-			vspeed = random_range(-0.1, 0.1)
+		if (global.wait.do_wait(dash_dust_timer)){
+			global.wait.reset(dash_dust_timer)
+			
+			with (instance_create_layer(x + random_range(-sprite_width / 2, sprite_width / 2), y + random_range(-sprite_height / 2, sprite_height / 2), "Instances", obj_dash_dust)){
+				hspeed = random_range(-0.1, 0.1)
+				vspeed = random_range(-0.1, 0.1)
+			}
 		}
 		
 		if (global.wait.do_wait(temp_timer)){
@@ -341,6 +346,15 @@ state.add("wall_jump", {
 		
 		hsp = -on_wall() * wall_jump_hsp
 		vsp = wall_jump_j_vel
+		
+		var _side = on_wall() == 1 ? bbox_right : bbox_left
+		
+		repeat(10){
+			with (instance_create_layer(_side, bbox_bottom, "Instances", obj_dust)){
+				hspeed = random_range(-other.on_wall() * 0.5, other.on_wall() * 0.1)
+				vspeed = random_range(-0.2, 0.2)
+			}
+		}
 	},
 	step: function(){
 		vsp += wall_jump_grv
