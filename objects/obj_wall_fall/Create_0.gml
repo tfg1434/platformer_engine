@@ -44,7 +44,7 @@ state.add("fallen", {
 		sprite_index = spr_wall_fall_fallen
 	},
 	step: function(){
-		if (global.wait.do_wait(regen_timer)){
+		if (global.wait.do_wait(regen_timer) && !place_meeting(x, y, obj_player)){
 			global.wait.reset(regen_timer)
 			array_push(global.solids, id)
 			state_switch("idle")

@@ -18,6 +18,8 @@ Slide over corners when you barely clip them
 
 event_user(0)
 
+t = 0
+
 hsp = 0
 vsp = 0
 vsp_max = 4
@@ -57,11 +59,21 @@ wall_jump_j_vel = -abs(grv) * wall_jump_time_to_apex
 wall_vsp_max = 1
 wall_dust_timer = new global.wait.Waiter(3)
 
+//squish squash uwu
+xscale = 1
+yscale = 1
+squish_xscale_jump_rise = 0.9
+squish_yscale_jump_rise = 1.25
+squish_time_jump_rise = 10
+squish_time_fall = 5
+
 state = new StateMachine("idle")
 state.add("idle", {
 	enter: function(){
 		hsp = 0
 		vsp = 0
+		xscale = 1
+		yscale = 1
 		
 		image_index = 0
 	},
@@ -69,23 +81,23 @@ state.add("idle", {
 		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir != 0){
 			state_switch("walk")
-			exit
+			return
 		}
 		
 		if (check_jump()){
 			state_switch("rising")
-			exit
+			return
 		}
 		
 		if (!on_ground()){
 			state_switch("falling")
-			exit
+			return
 		}
 		else can_dash = true
 		
 		if (check_dash()){
 			state_switch("dash")
-			exit
+			return
 		}
 		
 		move_n_collide()
@@ -94,15 +106,12 @@ state.add("idle", {
 state.add("walk", {
 	enter: function(){
 		image_index = 0
-		
-		accel_spd = walksp / accel_time
-		deccel_spd = walksp / deccel_time
 	},
 	step: function(){
 		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir == 0 && hsp == 0){
 			state_switch("idle")
-			exit
+			return
 		}
 		
 		if (_hdir != 0) image_xscale = _hdir
@@ -110,18 +119,18 @@ state.add("walk", {
 		
 		if (check_jump()){
 			state_switch("rising")
-			exit
+			return
 		}
 		
 		if (!on_ground()){
 			state_switch("falling")
-			exit
+			return
 		}
 		else can_dash = true
 		
 		if (check_dash()){
 			state_switch("dash")
-			exit
+			return
 		}
 		
 		mask_index = spr_player_walk_pinched
@@ -132,13 +141,18 @@ state.add("walk", {
 })
 state.add("rising", {
 	enter: function(){
+		t = 0
+		
 		vsp = j_velocity
 		
-		accel_spd = walksp / accel_time
-		deccel_spd = walksp / deccel_time
+		xscale = 1
+		yscale = 1
 	},
 	step: function(){
-		//if (place_meeting(x, y + vsp, obj_wall)) mask_index = spr_player_jump_pinched
+		t++
+		
+		xscale = lerp(1, squish_xscale_jump_rise, t / squish_time_jump_rise)
+		yscale = lerp(1, squish_yscale_jump_rise, t / squish_time_jump_rise)
 		
 		var _hdir = input_check(VERB.RIGHT) - input_check(VERB.LEFT)
 		if (_hdir != 0) image_xscale = _hdir
@@ -157,19 +171,19 @@ state.add("rising", {
 		
 		if (vsp >= 0){
 			state_switch("falling")
-			exit
+			return
 		}
 		
 		if (on_wall() != 0 && input_check_pressed(VERB.JUMP)){
 			state_switch("wall_jump")
 			input_consume(VERB.JUMP)
 			move_n_collide()
-			exit
+			return
 		}
 		
 		if (check_dash()){
 			state_switch("dash")
-			exit
+			return
 		}
 		
 		mask_index = spr_player_jump_pinched
@@ -180,24 +194,26 @@ state.add("rising", {
 })
 state.add("falling", {
 	enter: function(){
+		t = 0
+		
+		start_xscale = xscale
+		start_yscale = yscale
+		
 		image_index = 0
-		
-		accel_spd = walksp / accel_time
-		deccel_spd = walksp / deccel_time
-		
-		//mask_index = spr_player_idle
-		//var _wall = instance_place(x, y, obj_wall)
-		//if (_wall != noone){
-		//	var _side = sign((_wall.x + sprite_get_width(spr_wall) / 2) - x) //1 = left, -1 = right
-		//	while (place_meeting(x, y, obj_wall)) x -= _side
-		//}
 	},
 	step: function(){
+		if (xscale != 1 || yscale != 1){
+			t++
+		}
+		
+		xscale = lerp(start_xscale, 1, t / squish_time_fall)
+		yscale = lerp(start_yscale, 1, t / squish_time_fall)
+		
 		//Coyote time
 		if (state.get_previous() == "walk" || state.get_previous() == "idle"){
 			if (++can_jump_timer < coyote_time && input_check_pressed(VERB.UP)){
 				state_switch("rising")
-				exit
+				return
 			}
 		}
 		
@@ -214,17 +230,17 @@ state.add("falling", {
 			
 			if (_hdir == 0){
 				state_switch("idle")
-				exit
+				return
 			}
 			else{
 				state_switch("walk")
-				exit
+				return
 			}
 		}
 		
 		if (check_dash()){
 			state_switch("dash")
-			exit
+			return
 		}
 		
 		if (on_wall() != 0){
@@ -232,11 +248,11 @@ state.add("falling", {
 				state_switch("wall_jump")
 				input_consume(VERB.JUMP)
 				move_n_collide()
-				exit
+				return
 			}
 			if (_hdir == on_wall()){
 				state_switch("wall_slide")
-				exit
+				return
 			}
 		}
 		
@@ -247,6 +263,7 @@ state.add("falling", {
 	},
 	leave: function(){
 		can_jump_timer = 0
+		t = 0
 	}
 })
 state.add("dash", {
@@ -267,7 +284,8 @@ state.add("dash", {
 		if (global.wait.do_wait(dash_dust_timer)){
 			global.wait.reset(dash_dust_timer)
 			
-			with (instance_create_layer(x + random_range(-sprite_width / 2, sprite_width / 2), y + random_range(-sprite_height / 2, sprite_height / 2), "Instances", obj_dash_dust)){
+			//with (instance_create_layer(x + random_range(-sprite_width / 2, sprite_width / 2), y + random_range(-sprite_height / 2, sprite_height / 2), "Instances", obj_dash_dust)){
+			with (instance_create_layer(x + random_range(-sprite_width / 2, sprite_width / 2), y - random(sprite_height), "Instances", obj_dash_dust)){
 				hspeed = random_range(-0.1, 0.1)
 				vspeed = random_range(-0.1, 0.1)
 			}
@@ -279,11 +297,11 @@ state.add("dash", {
 			
 			if (on_ground()){
 				state_switch("walk")
-				exit
+				return
 			}
 			else{
 				state_switch("falling")
-				exit
+				return
 			}
 		}
 		
@@ -300,16 +318,16 @@ state.add("wall_slide", {
 			state_switch("wall_jump")
 			input_consume(VERB.JUMP)
 			move_n_collide()
-			exit
+			return
 		}
 		if (on_ground()){
 			can_dash = true
 			state_switch("idle")
-			exit
+			return
 		}
 		if (on_wall() == 0){
 			state_switch("falling")
-			exit
+			return
 		}
 		image_xscale = on_wall()
 		
@@ -326,7 +344,7 @@ state.add("wall_slide", {
 				if (global.wait.do_wait(wall_dust_timer)){
 					global.wait.reset(wall_dust_timer)
 					
-					with (instance_create_layer(_side, y + random_range(-sprite_height / 2, sprite_height / 2), "Instances", obj_dust)){
+					with (instance_create_layer(_side, y - random(sprite_height), "Instances", obj_dust)){
 						hspeed = other.on_wall() * random_range(0.4, 0.6)
 					}
 				}
@@ -363,27 +381,27 @@ state.add("wall_jump", {
 		
 		if (on_wall() != 0){
 			state_switch("wall_slide")
-			exit
+			return
 		}
 		
 		if (vsp >= 0){
 			state_switch("falling")
-			exit
+			return
 		}
 		
 		if (on_ground()){
 			state_switch("walk")
-			exit
+			return
 		}
 		
 		//if (global.wait.do_wait(wall_jump_timer) && !on_ground()){
 		//	global.wait.once(wall_jump_timer)
 		//	state_switch("falling")
-		//	exit
+		//	return
 		//}
 		//else if (global.wait.do_wait(wall_jump_timer) && on_ground()){
 		//	state_switch("walk")
-		//	exit
+		//	return
 		//}
 	}
 })
