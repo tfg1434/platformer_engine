@@ -52,7 +52,7 @@
     {"id":{"name":"spr_dash_trail","path":"sprites/spr_dash_trail/spr_dash_trail.yy",},"order":8,},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},"order":0,},
     {"id":{"name":"input_player_source_set","path":"scripts/input_player_source_set/input_player_source_set.yy",},"order":4,},
-    {"id":{"name":"Easings","path":"scripts/Easings/Easings.yy",},"order":0,},
+    {"id":{"name":"Twerp","path":"scripts/Twerp/Twerp.yy",},"order":0,},
     {"id":{"name":"input_bindings_read","path":"scripts/input_bindings_read/input_bindings_read.yy",},"order":8,},
     {"id":{"name":"input_distance","path":"scripts/input_distance/input_distance.yy",},"order":8,},
     {"id":{"name":"input_history_global_include","path":"scripts/input_history_global_include/input_history_global_include.yy",},"order":3,},
@@ -150,6 +150,7 @@
     {"folderPath":"folders/Input/Players.yy","order":8,"resourceVersion":"1.0","name":"Players","tags":[],"resourceType":"GMFolder",},
     {"folderPath":"folders/Input/Source Assignment.yy","order":9,"resourceVersion":"1.0","name":"Source Assignment","tags":[],"resourceType":"GMFolder",},
     {"folderPath":"folders/Prelude.yy","order":5,"resourceVersion":"1.0","name":"Prelude","tags":[],"resourceType":"GMFolder",},
+    {"folderPath":"folders/Animation Curves.yy","order":6,"resourceVersion":"1.0","name":"Animation Curves","tags":[],"resourceType":"GMFolder",},
   ],
   "AudioGroups": [
     {"targets":-1,"resourceVersion":"1.3","name":"audiogroup_default","resourceType":"GMAudioGroup",},

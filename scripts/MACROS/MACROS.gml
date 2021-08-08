@@ -13,6 +13,8 @@
 #macro WIN_H window_get_height()
 #macro round round_not_bankers
 
+#macro HDIR (input_check(VERB.RIGHT) - input_check(VERB.LEFT))
+
 
 
 
