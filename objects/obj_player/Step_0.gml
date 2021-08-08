@@ -1,3 +1,3 @@
 state.step()
-x += hsp;
+
 

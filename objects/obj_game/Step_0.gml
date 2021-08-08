@@ -9,4 +9,5 @@ if ((prev_window_size.w != WIN_W || prev_window_size.h != WIN_H) && WIN_W != 0){
 prev_window_size.w = WIN_W
 prev_window_size.h = WIN_H
 
-
+if (keyboard_check_pressed(ord("R")))
+	game_restart();
