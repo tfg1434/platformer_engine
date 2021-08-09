@@ -31,14 +31,27 @@ run_spd = 3;
 hsp = 0;
 vsp = 0;
 
+var calc_j = function(_h, _t) {
+	var ret = {};
+	ret.grv = (2 * _h) / power(_t, 2);
+	ret.vel = -abs(ret.grv) * _t;
+	return ret;
+}
 //not necessarily accurate
 //if you can figure out a way to make it accurate
 //make an issue
-max_j_height = 2.5 * sprite_height;
-max_time_to_apex = 18;
-//solve for grv dynamically
-grv = (2 * max_j_height) / power(max_time_to_apex, 2);
-j_velocity = -abs(grv) * max_time_to_apex;
+var max_j_height = 2.5 * sprite_height;
+var max_time_to_apex = 15;
+var calc_max = calc_j(max_j_height, max_time_to_apex);
+grv = calc_max.grv;
+j_vel = calc_max.vel;
+stop_grv = grv + 0.35; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
+
+//var min_j_height = 0.5 * sprite_height;
+//var min_time_to_apex = 3;
+//var calc_min = calc_j(min_j_height, min_time_to_apex);
+//stop_grv = calc_min.grv;
+//min_j_vel = calc_min.vel;
 
 state = new SnowState("run")
 	.add("idle", {
@@ -46,7 +59,7 @@ state = new SnowState("run")
 	})
 	.add("run", {
 		step: function() {
-			if (input_check(VERB.JUMP))
+			if (input_check_pressed(VERB.JUMP))
 				state.change("rising");
 				
 			
@@ -59,14 +72,20 @@ state = new SnowState("run")
 	})
 	.add("rising", {
 		enter: function() {
-			vsp = j_velocity;	
+			vsp = j_vel;	
 		},
 		step: function() {
 			if (vsp > 0) state.change("falling");
 			
 			move_h();
-		
-			vsp += grv;
+			
+			
+			if (input_check(VERB.JUMP))
+				vsp += grv;
+			else
+				vsp += stop_grv;
+			
+				
 			move_collide();
 		}
 	})
