@@ -47,7 +47,7 @@ grv = calc_max.grv;
 j_vel = calc_max.vel;
 stop_grv = grv + 0.75; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
 
-wall_slide_grv = 0.25;
+wall_slide_spd = 1.6;
 
 state = new SnowState("idle")
 	.add("idle", {
@@ -121,19 +121,40 @@ state = new SnowState("idle")
 		}
 	})
 	.add("wall_slide", {
+		enter: function() {
+			vsp = wall_slide_spd;	
+		},
 		step: function() {
 			if (check_state.idle()) {
 				state.change("idle");
 				return;
 			}
+			if (HDIR != on_wall()) {
+				state.change("falling");
+				return;
+			}
 			
-			move_h();
-			
-			vsp += wall_slide_grv;
 			move_collide();
 		}
 	});
-	
+
+check_state = {
+	idle: method(self, function() {
+		return on_ground();
+	}),
+	run: method(self, function() {
+		return HDIR != 0;
+	}),
+	rising: method(self, function() {
+		return input_check_pressed(VERB.JUMP());
+	}),
+	falling: method(self, function() {
+		return vsp > 0;
+	}),
+	wall_slide: method(self, function() {
+		return HDIR != 0 && HDIR == on_wall();
+	}),
+}
 	
 move_collide = function() {
 	repeat (abs(hsp)) {
@@ -180,20 +201,3 @@ on_wall = function() {
 	return place_meeting(x + 1, y, obj_wall) - place_meeting(x - 1, y, obj_wall);
 }
 
-check_state = {
-	idle: method(self, function() {
-		return on_ground();
-	}),
-	run: method(self, function() {
-		return HDIR != 0;
-	}),
-	rising: method(self, function() {
-		return input_check_pressed(VERB.JUMP());
-	}),
-	falling: method(self, function() {
-		return vsp > 0;
-	}),
-	wall_slide: method(self, function() {
-		return HDIR != 0 && HDIR == on_wall();
-	}),
-}
