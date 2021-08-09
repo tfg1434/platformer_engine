@@ -47,20 +47,16 @@ grv = calc_max.grv;
 j_vel = calc_max.vel;
 stop_grv = grv + 0.35; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
 
-//var min_j_height = 0.5 * sprite_height;
-//var min_time_to_apex = 3;
-//var calc_min = calc_j(min_j_height, min_time_to_apex);
-//stop_grv = calc_min.grv;
-//min_j_vel = calc_min.vel;
-
-state = new SnowState("run")
+state = new SnowState("idle")
 	.add("idle", {
-	
+		step: function() {
+			check_state.run();
+			check_state.rising();
+		}
 	})
 	.add("run", {
 		step: function() {
-			if (input_check_pressed(VERB.JUMP))
-				state.change("rising");
+			check_state.rising();
 				
 			
 			move_h();
@@ -75,7 +71,7 @@ state = new SnowState("run")
 			vsp = j_vel;	
 		},
 		step: function() {
-			if (vsp > 0) state.change("falling");
+			check_state.falling();
 			
 			move_h();
 			
@@ -91,8 +87,7 @@ state = new SnowState("run")
 	})
 	.add("falling", {
 		step: function() {
-			if (on_ground())
-				state.change("run");
+			check_state.run();
 				
 			move_h();
 				
@@ -141,4 +136,16 @@ move_h = function() {
 	else
 		//decellerate
 		hsp = twerp(deccel_curve, run_spd * sign(hsp), 0, deccel_t / deccel_max);	
+}
+
+check_state = {
+	run: function() {
+		if (HDIR != 0) state.change("run");
+	},
+	rising: function() {
+		if (input_check_pressed(VERB.JUMP)) state.change("rising");
+	},
+	falling: function() {
+		if (vsp > 0) state.change("falling");	
+	},
 }
