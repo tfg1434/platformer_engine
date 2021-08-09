@@ -27,6 +27,7 @@ deccel_max = 3;
 deccel_curve = TwerpType.in_sine;
 
 run_spd = 3;
+max_grv = 3.5; //max gravity speed
 
 hsp = 0;
 vsp = 0;
@@ -73,7 +74,7 @@ state = new SnowState("idle")
 			move_h();
 				
 				
-			vsp += grv;
+			apply_grv();
 			move_collide();
 		}
 	})
@@ -91,9 +92,9 @@ state = new SnowState("idle")
 			move_h();
 			
 			if (input_check(VERB.JUMP))
-				vsp += grv;
+				apply_grv();
 			else
-				vsp += stop_grv;
+				apply_grv(stop_grv);
 			
 				
 			move_collide();
@@ -116,7 +117,7 @@ state = new SnowState("idle")
 				
 			move_h();
 				
-			vsp += grv;
+			apply_grv();
 			move_collide();
 		}
 	})
@@ -199,5 +200,10 @@ move_h = function() {
 
 on_wall = function() {
 	return place_meeting(x + 1, y, obj_wall) - place_meeting(x - 1, y, obj_wall);
+}
+
+///@func apply_grv(inc)
+apply_grv = function(_inc = grv) {
+	vsp = approach(vsp, max_grv, _inc);
 }
 
