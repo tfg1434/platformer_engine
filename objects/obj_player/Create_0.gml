@@ -102,6 +102,10 @@ state = new SnowState("idle")
 				state.change("falling");
 				return;
 			}
+			if (check_state.climb()) {
+				state.change("climb");
+				return;
+			}
 			
 			
 			move_h();
@@ -129,6 +133,10 @@ state = new SnowState("idle")
 				state.change("idle");
 				return;
 			}
+			if (check_state.climb()) {
+				state.change("climb");
+				return;
+			}
 				
 			move_h();
 				
@@ -145,22 +153,22 @@ state = new SnowState("idle")
 				state.change("idle");
 				return;
 			}
-			if (HDIR != on_wall()) {
+			if (HDIR != on_wall() && !input_check(VERB.DOWN)) {
 				state.change("falling");
 				return;
 			}
+			if (check_state.climb() && !input_check(VERB.DOWN)) {
+				state.change("climb");
+				return;
+			}
+			
 			
 			move_collide();
 		}
 	})
 	.add("climb", {
 		step: function() {
-			vsp = 0;
-			if (input_check(VERB.UP))
-				vsp = climb_spd;
-			move_collide();
-			
-			if (check_state.idle()) {
+			if (check_state.idle() && !input_check(VERB.CLIMB)) {
 				state.change("idle");
 				return;
 			}
@@ -168,9 +176,16 @@ state = new SnowState("idle")
 				state.change("falling");
 				return;
 			}
+			if (input_check(VERB.DOWN)) {
+				state.change("wall_slide");
+				return;
+			}
 			
 			
-			
+			vsp = 0;
+			if (input_check(VERB.UP))
+				vsp = climb_spd;
+			move_collide();
 		}
 	});
 
@@ -202,8 +217,6 @@ move_collide = function() {
 	var vsp_new = round(vfrac);
 	hfrac -= hsp_new;
 	vfrac -= vsp_new;
-	
-	show_debug_message("hfrac " + string(hfrac) + "vfrac " + string(vfrac))
 	
 	repeat (abs(hsp_new)) {
 	    if (!place_meeting(x + sign(hsp_new), y, obj_wall)) {
