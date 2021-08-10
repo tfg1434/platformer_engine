@@ -31,6 +31,8 @@ max_grv = 3.5; //max gravity speed
 
 hsp = 0;
 vsp = 0;
+hfrac = 0;
+vfrac = 0;
 
 var calc_j = function(_h, _t) {
 	var ret = {};
@@ -49,6 +51,7 @@ j_vel = calc_max.vel;
 stop_grv = grv + 0.75; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
 
 wall_slide_spd = 1.6;
+climb_spd = -0.85;
 
 state = new SnowState("idle")
 	.add("idle", {
@@ -61,12 +64,24 @@ state = new SnowState("idle")
 				state.change("rising");
 				return;
 			}
+			if (check_state.climb()) {
+				state.change("climb");
+				return;
+			}
 		}
 	})
 	.add("run", {
 		step: function() {
 			if (check_state.rising()) {
 				state.change("rising");
+				return;
+			}
+			if (check_state.climb()) {
+				state.change("climb");
+				return;
+			}
+			if (check_state.idle()) {
+				state.change("idle");
 				return;
 			}
 				
@@ -137,11 +152,31 @@ state = new SnowState("idle")
 			
 			move_collide();
 		}
+	})
+	.add("climb", {
+		step: function() {
+			vsp = 0;
+			if (input_check(VERB.UP))
+				vsp = climb_spd;
+			move_collide();
+			
+			if (check_state.idle()) {
+				state.change("idle");
+				return;
+			}
+			if (on_wall() == 0 || !input_check(VERB.CLIMB)) {
+				state.change("falling");
+				return;
+			}
+			
+			
+			
+		}
 	});
 
 check_state = {
 	idle: method(self, function() {
-		return on_ground();
+		return on_ground() && HDIR == 0;
 	}),
 	run: method(self, function() {
 		return HDIR != 0;
@@ -155,26 +190,38 @@ check_state = {
 	wall_slide: method(self, function() {
 		return HDIR != 0 && HDIR == on_wall();
 	}),
+	climb: method(self, function() {
+		return on_wall() != 0 && input_check(VERB.CLIMB);
+	}),
 }
 	
 move_collide = function() {
-	repeat (abs(hsp)) {
-	    if (!place_meeting(x + sign(hsp), y, obj_wall)) {
-	        x += sign(hsp);
+	hfrac += hsp;
+	vfrac += vsp;
+	var hsp_new = round(hfrac);
+	var vsp_new = round(vfrac);
+	hfrac -= hsp_new;
+	vfrac -= vsp_new;
+	
+	show_debug_message("hfrac " + string(hfrac) + "vfrac " + string(vfrac))
+	
+	repeat (abs(hsp_new)) {
+	    if (!place_meeting(x + sign(hsp_new), y, obj_wall)) {
+	        x += sign(hsp_new);
 	    } else {
 	        hsp = 0;
 	        break;
 	    }
 	}
 
-	repeat (abs(vsp)) {
-	    if (!place_meeting(x, y + sign(vsp), obj_wall)) {
-	        y += sign(vsp);
+	repeat (abs(vsp_new)) {
+	    if (!place_meeting(x, y + sign(vsp_new), obj_wall)) {
+	        y += sign(vsp_new);
 	    } else {
 	        vsp = 0;
 	        break;
 	    }
-	}	
+	}
 }
 
 on_ground = function() {
