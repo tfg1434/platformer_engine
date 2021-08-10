@@ -68,6 +68,10 @@ state = new SnowState("idle")
 				state.change("climb");
 				return;
 			}
+			if (!on_ground()) {
+				state.change("falling");
+				return;
+			}
 		}
 	})
 	.add("run", {
@@ -84,6 +88,10 @@ state = new SnowState("idle")
 				state.change("idle");
 				return;
 			}
+			//if (check_state.falling()) {
+			//	state.change("falling");
+			//	return;
+			//}
 				
 			
 			move_h();
@@ -122,13 +130,14 @@ state = new SnowState("idle")
 	.add("falling", {
 		step: function() {
 			if (check_state.wall_slide()) {
+				show_debug_message("E")
 				state.change("wall_slide");
 				return;
 			}
-			if (check_state.run()) {
-				state.change("run");
-				return;
-			}
+			//if (check_state.run()) {
+			//	state.change("run");
+			//	return;
+			//}
 			if (check_state.idle()) {
 				state.change("idle");
 				return;
@@ -149,7 +158,7 @@ state = new SnowState("idle")
 			vsp = wall_slide_spd;	
 		},
 		step: function() {
-			if (check_state.idle()) {
+			if (check_state.idle() || on_ground()) {
 				state.change("idle");
 				return;
 			}
@@ -159,6 +168,10 @@ state = new SnowState("idle")
 			}
 			if (check_state.climb() && !input_check(VERB.DOWN)) {
 				state.change("climb");
+				return;
+			}
+			if (on_wall() == 0) {
+				state.change("falling");
 				return;
 			}
 			
@@ -264,6 +277,7 @@ on_wall = function() {
 
 ///@func apply_grv(inc)
 apply_grv = function(_inc = grv) {
-	vsp = approach(vsp, max_grv, _inc);
+	if (!on_ground()) 
+		vsp = approach(vsp, max_grv, _inc);
 }
 
