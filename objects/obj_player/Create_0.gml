@@ -50,8 +50,12 @@ grv = calc_max.grv;
 j_vel = calc_max.vel;
 stop_grv = grv + 0.75; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
 
-wall_slide_spd = 1.6;
+wall_slide_spd = 1.6; //actually climbdown speed
+
 climb_spd = -0.85;
+
+climb_hop_hsp = 1.8;
+climb_hop_vsp = -2.0;
 
 state = new SnowState("idle")
 	.add("idle", {
@@ -95,6 +99,7 @@ state = new SnowState("idle")
 				
 			
 			move_h();
+			update_facing();
 				
 				
 			apply_grv();
@@ -117,6 +122,7 @@ state = new SnowState("idle")
 			
 			
 			move_h();
+			update_facing();
 			
 			if (input_check(VERB.JUMP))
 				apply_grv();
@@ -147,6 +153,7 @@ state = new SnowState("idle")
 			}
 				
 			move_h();
+			update_facing();
 				
 			apply_grv();
 			move_collide();
@@ -175,11 +182,30 @@ state = new SnowState("idle")
 			}
 			
 			
+			update_facing(HDIR);
+			
+			
 			move_collide();
 		}
 	})
 	.add("climb", {
 		step: function() {
+			var hop = false;
+			
+			var climb_hop = function() {
+				hsp = (place_meeting(x + 1, y + 1, obj_wall) - place_meeting(x - 1, y + 1, obj_wall)) * climb_hop_hsp;
+				vsp = climb_hop_vsp;
+			}
+			
+			
+			if (!place_meeting(x + image_xscale, y, obj_wall)) {
+				if (vsp < 0) {
+					climb_hop();
+					hop = true;
+				}
+			}
+			
+			
 			if (check_state.idle() && !input_check(VERB.CLIMB)) {
 				state.change("idle");
 				return;
@@ -194,9 +220,17 @@ state = new SnowState("idle")
 			}
 			
 			
-			vsp = 0;
-			if (input_check(VERB.UP))
-				vsp = climb_spd;
+			if (!hop) {
+				vsp = 0;
+				if (input_check(VERB.UP))
+					vsp = climb_spd;
+			}
+				
+			
+			
+			update_facing(HDIR);
+				
+				
 			move_collide();
 		}
 	});
@@ -280,3 +314,6 @@ apply_grv = function(_inc = grv) {
 		vsp = approach(vsp, max_grv, _inc);
 }
 
+update_facing = function(_to=hsp) {
+	if (_to != 0) image_xscale = sign(_to);
+}
