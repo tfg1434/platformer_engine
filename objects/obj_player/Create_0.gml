@@ -27,7 +27,7 @@ deccel_max = 3;
 deccel_curve = TwerpType.in_sine;
 
 run_spd = 3;
-max_grv = 3.5; //max gravity speed
+max_fall = 3.5; //max gravity speed
 
 hsp = 0;
 vsp = 0;
@@ -50,12 +50,16 @@ grv = calc_max.grv;
 j_vel = calc_max.vel;
 stop_grv = grv + 0.75; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
 
-wall_slide_spd = 1.6; //actually climbdown speed
-
 climb_spd = -0.85;
+climb_down_spd = 1.6;
 
 climb_hop_hsp = 0.7;
 climb_hop_vsp = -2.0;
+
+wall_slide_max = 70;
+wall_slide_t = 0;
+wall_slide_start_spd = 1.3;
+wall_slide_curve = TwerpType.in_cubic;
 
 state = new SnowState("idle")
 	#region idle
@@ -170,7 +174,8 @@ state = new SnowState("idle")
 	#region wall_slide
 	.add("wall_slide", {
 		enter: function() {
-			vsp = wall_slide_spd;	
+			wall_slide_t = 0;
+			vsp = wall_slide_start_spd;
 		},
 		step: function() {
 			if (check_state.idle() || on_ground()) {
@@ -190,11 +195,17 @@ state = new SnowState("idle")
 				return;
 			}
 			
+			vsp = twerp(wall_slide_curve, wall_slide_start_spd, max_fall, wall_slide_t / wall_slide_max);
+			wall_slide_t++;
+			
 			
 			update_facing(HDIR);
 			
 			
 			move_collide();
+		},
+		leave: function() {
+			wall_slide_t = 0;
 		}
 	})
 	#endregion
@@ -217,7 +228,7 @@ state = new SnowState("idle")
 				return;
 			}
 			if (input_check(VERB.DOWN)) {
-				state.change("wall_slide");
+				//state.change("wall_slide");
 				return;
 			}
 			
@@ -337,7 +348,7 @@ on_corner = function() {
 ///@func apply_grv(inc)
 apply_grv = function(_inc = grv) {
 	if (!on_ground()) 
-		vsp = approach(vsp, max_grv, _inc);
+		vsp = approach(vsp, max_fall, _inc);
 }
 
 update_facing = function(_to=hsp) {
