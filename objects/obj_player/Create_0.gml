@@ -58,6 +58,7 @@ climb_hop_hsp = 0.7;
 climb_hop_vsp = -2.0;
 
 state = new SnowState("idle")
+	#region idle
 	.add("idle", {
 		step: function() {
 			if (check_state.run()) {
@@ -78,6 +79,8 @@ state = new SnowState("idle")
 			}
 		}
 	})
+	#endregion
+	#region run
 	.add("run", {
 		step: function() {
 			if (check_state.wall_slide()) {
@@ -106,6 +109,8 @@ state = new SnowState("idle")
 			move_collide();
 		}
 	})
+	#endregion
+	#region rising
 	.add("rising", {
 		enter: function() {
 			vsp = j_vel;	
@@ -133,6 +138,8 @@ state = new SnowState("idle")
 			move_collide();
 		}
 	})
+	#endregion
+	#region falling
 	.add("falling", {
 		step: function() {
 			if (check_state.wall_slide()) {
@@ -159,6 +166,8 @@ state = new SnowState("idle")
 			move_collide();
 		}
 	})
+	#endregion
+	#region wall_slide
 	.add("wall_slide", {
 		enter: function() {
 			vsp = wall_slide_spd;	
@@ -188,15 +197,16 @@ state = new SnowState("idle")
 			move_collide();
 		}
 	})
+	#endregion
+	#region climb
 	.add("climb", {
 		step: function() {			
-			if (!place_meeting(x + image_xscale, y, obj_wall)) {
+			if (!place_meeting(x + on_wall(), y, obj_wall)) {
 				if (vsp < 0) {
 					state.change("climb_hop");
 					return;
 				}
 			}
-			
 			
 			if (check_state.idle() && !input_check(VERB.CLIMB)) {
 				state.change("idle");
@@ -218,12 +228,14 @@ state = new SnowState("idle")
 				
 			
 			
-			update_facing(HDIR);
+			update_facing(HDIR != 0 ? HDIR : on_wall());
 				
 				
 			move_collide();
 		}
 	})
+	#endregion
+	#region climb_hop
 	.add("climb_hop", {
 		enter: function() {
 			hsp = (place_meeting(x + 1, y + 1, obj_wall) - place_meeting(x - 1, y + 1, obj_wall)) * climb_hop_hsp;
@@ -243,6 +255,7 @@ state = new SnowState("idle")
 			move_collide();
 		}
 	});
+	#endregion
 
 check_state = {
 	idle: method(self, function() {
@@ -315,6 +328,10 @@ move_h = function() {
 
 on_wall = function() {
 	return place_meeting(x + 1, y, obj_wall) - place_meeting(x - 1, y, obj_wall);
+}
+
+on_corner = function() {
+	return place_meeting(x + 1, y + 1, obj_wall) - place_meeting(x - 1, y + 1, obj_wall);
 }
 
 ///@func apply_grv(inc)
