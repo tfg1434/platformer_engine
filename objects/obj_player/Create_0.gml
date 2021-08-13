@@ -53,10 +53,15 @@ j_vel = calc_max.vel;
 stop_grv = grv + 0.75; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
 
 climb_spd = -0.85;
+climb_start_spd = -0.55;
 climb_down_spd = 1.6;
-climb_t = 0;
-climb_t_max = 5;
-climb_curve = TwerpType.in_sine;
+climb_down_start_spd = 1.2; 
+climb_up_t = 0;
+climb_up_t_max = 10;
+climb_down_t = 0;
+climb_down_t_max = 10;
+climb_up_curve = TwerpType.in_sine;
+climb_down_curve = TwerpType.in_sine;
 
 climb_hop_hsp = 0.7;
 climb_hop_vsp = -2.0;
@@ -219,6 +224,8 @@ state = new SnowState("idle")
 	.add("climb", {
 		enter: function() {
 			update_facing(on_wall());
+			vsp = climb_start_spd;
+			climb_up_t = 0;
 		},
 		step: function() {			
 			if (!place_meeting(x + on_wall(), y, obj_wall)) {
@@ -227,7 +234,6 @@ state = new SnowState("idle")
 					return;
 				}
 			}
-			
 			if (check_state.climb_still() || on_ceil()) {
 				state.change("climb_still");
 				return;
@@ -236,14 +242,21 @@ state = new SnowState("idle")
 				state.change("climb_down");
 				return;
 			}
+			if (!input_check(VERB.CLIMB)) {
+				state.change("falling");
+				return;
+			}
 			
 			
-			vsp = 0;
-			if (input_check(VERB.UP))
-				vsp = climb_spd;
+			vsp = twerp(climb_up_curve, climb_start_spd, 
+				climb_spd, climb_up_t / climb_up_t_max);
+			climb_up_t++;
 				
 				
 			move_collide();
+		},
+		leave: function() {
+			climb_up_t = 0;	
 		},
 	})
 	#endregion
@@ -282,34 +295,34 @@ state = new SnowState("idle")
 	#region climb_down
 	.add("climb_down", {
 		enter: function() {
-			climb_t = 0;
+			climb_down_t = 0;
 			update_facing(on_wall());
+			vsp = climb_down_start_spd;
 		},
 		step: function() {
 			if (on_ground()) {
 				state.change("climb_still");
 				return;
 			}
-			if (!input_check(VERB.DOWN)) {
-				if (check_state.climb()) {
-					state.change("climb");
-					return;
-				}
-				if (!input_check(VERB.CLIMB)) {
-					state.change("falling");
-					return;
-				}
+			if (check_state.climb() && !input_check(VERB.DOWN)) {
+				state.change("climb");
+				return;
+			}
+			if (!input_check(VERB.CLIMB)) {
+				state.change("falling");
+				return;
 			}
 			
 			
-			vsp = twerp(climb_curve, 0, climb_down_spd, climb_t / climb_t_max);
-			climb_t++;
+			vsp = twerp(climb_down_curve, climb_down_start_spd, 
+				climb_down_spd, climb_down_t / climb_down_t_max);
+			climb_down_t++;
 			
 			
 			move_collide();
 		},
 		leave: function() {
-			climb_t = 0;
+			climb_down_t = 0;
 		},
 	})
 	#endregion
