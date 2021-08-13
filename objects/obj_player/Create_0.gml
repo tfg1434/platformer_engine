@@ -228,11 +228,9 @@ state = new SnowState("idle")
 			climb_up_t = 0;
 		},
 		step: function() {			
-			if (!place_meeting(x + on_wall(), y, obj_wall)) {
-				if (vsp < 0) {
-					state.change("climb_hop");
-					return;
-				}
+			if (check_state.climb_hop()) {
+				state.change("climb_hop");
+				return;
 			}
 			if (check_state.climb_still() || on_ceil()) {
 				state.change("climb_still");
@@ -348,6 +346,10 @@ state = new SnowState("idle")
 	});
 	#endregion
 
+#region ============ 
+#endregion
+
+#region check_state
 check_state = {
 	idle: method(self, function() {
 		return on_ground() && HDIR == 0;
@@ -374,7 +376,11 @@ check_state = {
 	climb_down: method(self, function() {
 		return input_check(VERB.DOWN) && !on_ground();
 	}),
+	climb_hop: method(self, function() {
+		return !place_meeting(x + on_wall(), y, obj_wall) && vsp < 0;
+	}),
 }
+#endregion
 	
 ///@func do_jump({ hsp ; vsp })
 do_jump = function(_args={ hsp: 0, vsp: j_vel, }) {
