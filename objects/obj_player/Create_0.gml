@@ -26,6 +26,8 @@ deccel_t = 0;
 deccel_max = 3;
 deccel_curve = TwerpType.in_sine;
 
+air_fric = 0.65; //curve gets multiplied by this
+
 run_spd = 3;
 max_fall = 3.5; //max gravity speed
 
@@ -52,6 +54,9 @@ stop_grv = grv + 0.75; //https://youtu.be/hG9SzQxaCm8?list=LL&t=1066
 
 climb_spd = -0.85;
 climb_down_spd = 1.6;
+climb_t = 0;
+climb_t_max = 5;
+climb_curve = TwerpType.in_sine;
 
 climb_hop_hsp = 0.7;
 climb_hop_vsp = -2.0;
@@ -117,7 +122,7 @@ state = new SnowState("idle")
 	#region rising
 	.add("rising", {
 		enter: function() {
-			vsp = j_vel;	
+			do_jump();
 		},
 		step: function() {
 			if (check_state.falling()) {
@@ -195,7 +200,8 @@ state = new SnowState("idle")
 				return;
 			}
 			
-			vsp = twerp(wall_slide_curve, wall_slide_start_spd, max_fall, wall_slide_t / wall_slide_max);
+			vsp = twerp(wall_slide_curve, wall_slide_start_spd, 
+				max_fall, wall_slide_t / wall_slide_max);
 			wall_slide_t++;
 			
 			
@@ -228,7 +234,7 @@ state = new SnowState("idle")
 				return;
 			}
 			if (input_check(VERB.DOWN)) {
-				//state.change("wall_slide");
+				state.change("climb_down");
 				return;
 			}
 			
@@ -246,10 +252,45 @@ state = new SnowState("idle")
 		}
 	})
 	#endregion
+	#region climb_down
+	.add("climb_down", {
+		enter: function() {
+			climb_t = 0;
+		},
+		step: function() {
+			if (check_state.idle() || on_ground()) {
+				state.change("idle");
+				return;
+			}
+			if (HDIR != on_wall() && !input_check(VERB.DOWN)) {
+				state.change("falling");
+				return;
+			}
+			if (check_state.climb() && !input_check(VERB.DOWN)) {
+				state.change("climb");
+				return;
+			}
+			if (on_wall() == 0) {
+				state.change("falling");
+				return;
+			}
+			
+			
+			vsp = twerp(climb_curve, 0, climb_down_spd, climb_t / climb_t_max);
+			climb_t++;
+			
+			
+			move_collide();
+		},
+		leave: function() {
+			climb_t = 0;
+		},
+	})
+	#endregion
 	#region climb_hop
 	.add("climb_hop", {
 		enter: function() {
-			hsp = (place_meeting(x + 1, y + 1, obj_wall) - place_meeting(x - 1, y + 1, obj_wall)) * climb_hop_hsp;
+			hsp = on_corner() * climb_hop_hsp;
 			vsp = climb_hop_vsp;
 		},
 		step: function() {
@@ -289,6 +330,12 @@ check_state = {
 	}),
 }
 	
+///@func do_jump({ hsp ; vsp })
+do_jump = function(_args={ hsp: 0, vsp/*: j_vel*/, }) {
+	hsp += _args.hsp * image_xscale;
+	vsp = _args.vsp;
+}
+
 move_collide = function() {
 	hfrac += hsp;
 	vfrac += vsp;
@@ -321,12 +368,14 @@ on_ground = function() {
 }
 
 move_h = function() {
+	var mult = on_ground() ? 1 : air_fric;
+	
 	if (HDIR != 0) {
-		accel_t = approach(accel_t, accel_max, 1);
-		deccel_t = approach(deccel_t, 0, 1);
+		accel_t = approach(accel_t, accel_max, mult);
+		deccel_t = approach(deccel_t, 0, mult);
 	} else {
-		accel_t = approach(accel_t, 0, 1);
-		deccel_t = approach(deccel_t, deccel_max, 1);	
+		accel_t = approach(accel_t, 0, mult);
+		deccel_t = approach(deccel_t, deccel_max, mult);	
 	}
 			
 	if (HDIR != 0)
