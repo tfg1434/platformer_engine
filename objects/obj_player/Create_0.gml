@@ -217,6 +217,9 @@ state = new SnowState("idle")
 	#endregion
 	#region climb
 	.add("climb", {
+		enter: function() {
+			update_facing(on_wall());
+		},
 		step: function() {			
 			if (!place_meeting(x + on_wall(), y, obj_wall)) {
 				if (vsp < 0) {
@@ -225,15 +228,11 @@ state = new SnowState("idle")
 				}
 			}
 			
-			if (check_state.idle() && !input_check(VERB.CLIMB)) {
-				state.change("idle");
+			if (check_state.climb_still() || on_ceil()) {
+				state.change("climb_still");
 				return;
 			}
-			if (on_wall() == 0 || !input_check(VERB.CLIMB)) {
-				state.change("falling");
-				return;
-			}
-			if (input_check(VERB.DOWN)) {
+			if (check_state.climb_down()) {
 				state.change("climb_down");
 				return;
 			}
@@ -243,12 +242,40 @@ state = new SnowState("idle")
 			if (input_check(VERB.UP))
 				vsp = climb_spd;
 				
+				
+			move_collide();
+		},
+	})
+	#endregion
+	#region climb_still
+	.add("climb_still", {
+		step: function() {
+			if (!input_check(VERB.CLIMB)) {
+				if (check_state.wall_slide()) {
+					state.change("wall_slide");
+					return;
+				}
+				if (check_state.falling()) {
+					state.change("falling");
+					return;
+				}
+				
+				state.change("idle");
+				return;
+			}
+			
+			if (input_check(VERB.UP) && !on_ceil()) {
+				state.change("climb");
+				return;
+			}
+			
+			if (input_check(VERB.DOWN) && !on_ground()) {
+				state.change("climb_down");
+				return;
+			}
 			
 			
 			update_facing(HDIR != 0 ? HDIR : on_wall());
-				
-				
-			move_collide();
 		}
 	})
 	#endregion
@@ -256,23 +283,22 @@ state = new SnowState("idle")
 	.add("climb_down", {
 		enter: function() {
 			climb_t = 0;
+			update_facing(on_wall());
 		},
 		step: function() {
-			if (check_state.idle() || on_ground()) {
-				state.change("idle");
+			if (on_ground()) {
+				state.change("climb_still");
 				return;
 			}
-			if (HDIR != on_wall() && !input_check(VERB.DOWN)) {
-				state.change("falling");
-				return;
-			}
-			if (check_state.climb() && !input_check(VERB.DOWN)) {
-				state.change("climb");
-				return;
-			}
-			if (on_wall() == 0) {
-				state.change("falling");
-				return;
+			if (!input_check(VERB.DOWN)) {
+				if (check_state.climb()) {
+					state.change("climb");
+					return;
+				}
+				if (!input_check(VERB.CLIMB)) {
+					state.change("falling");
+					return;
+				}
 			}
 			
 			
@@ -328,10 +354,17 @@ check_state = {
 	climb: method(self, function() {
 		return on_wall() != 0 && input_check(VERB.CLIMB);
 	}),
+	climb_still: method(self, function() {
+		return on_wall() != 0 && input_check(VERB.CLIMB) 
+			&& VDIR == 0;
+	}),
+	climb_down: method(self, function() {
+		return input_check(VERB.DOWN) && !on_ground();
+	}),
 }
 	
 ///@func do_jump({ hsp ; vsp })
-do_jump = function(_args={ hsp: 0, vsp/*: j_vel*/, }) {
+do_jump = function(_args={ hsp: 0, vsp: j_vel, }) {
 	hsp += _args.hsp * image_xscale;
 	vsp = _args.vsp;
 }
@@ -365,6 +398,10 @@ move_collide = function() {
 
 on_ground = function() {
 	return place_meeting(x, y + 1, obj_wall);	
+}
+
+on_ceil = function() {
+	return place_meeting(x, y - 1, obj_wall);
 }
 
 move_h = function() {

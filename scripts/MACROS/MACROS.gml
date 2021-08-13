@@ -14,6 +14,7 @@
 #macro round round_not_bankers
 
 #macro HDIR (input_check(VERB.RIGHT) - input_check(VERB.LEFT))
+#macro VDIR (input_check(VERB.UP) - input_check(VERB.DOWN))
 
 
 
