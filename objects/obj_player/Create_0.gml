@@ -71,6 +71,16 @@ wall_slide_t = 0;
 wall_slide_start_spd = 1.3;
 wall_slide_curve = TwerpType.in_cubic;
 
+common_jump = function() {
+	move_h();
+	update_facing();
+			
+	if (input_check(VERB.JUMP))
+		apply_grv();
+	else
+		apply_grv(stop_grv);
+}
+
 state = new SnowState("idle")
 	#region idle
 	.add("idle", {
@@ -140,13 +150,7 @@ state = new SnowState("idle")
 			}
 			
 			
-			move_h();
-			update_facing();
-			
-			if (input_check(VERB.JUMP))
-				apply_grv();
-			else
-				apply_grv(stop_grv);
+			common_jump();
 			
 				
 			move_collide();
@@ -244,6 +248,10 @@ state = new SnowState("idle")
 				state.change("falling");
 				return;
 			}
+			if (check_state.climb_jump()) {
+				state.change("climb_jump");
+				return;
+			}
 			
 			
 			vsp = twerp(climb_up_curve, climb_start_spd, 
@@ -274,14 +282,16 @@ state = new SnowState("idle")
 				state.change("idle");
 				return;
 			}
-			
 			if (input_check(VERB.UP) && !on_ceil()) {
 				state.change("climb");
 				return;
 			}
-			
 			if (input_check(VERB.DOWN) && !on_ground()) {
 				state.change("climb_down");
+				return;
+			}
+			if (check_state.climb_jump()) {
+				state.change("climb_jump");
 				return;
 			}
 			
@@ -308,6 +318,10 @@ state = new SnowState("idle")
 			}
 			if (!input_check(VERB.CLIMB)) {
 				state.change("falling");
+				return;
+			}
+			if (check_state.climb_jump()) {
+				state.change("climb_jump");
 				return;
 			}
 			
@@ -340,6 +354,21 @@ state = new SnowState("idle")
 			}
 			
 			vsp += grv;
+			
+			move_collide();
+		}
+	})
+	#endregion
+	#region climb_jump
+	.add_child("rising", "climb_jump", {
+		step: function() {
+			if (vsp >= 0) {
+				state.change("climb_still");
+				return;
+			}
+			
+			
+			common_jump();
 			
 			move_collide();
 		}
@@ -378,6 +407,9 @@ check_state = {
 	}),
 	climb_hop: method(self, function() {
 		return !place_meeting(x + on_wall(), y, obj_wall) && vsp < 0;
+	}),
+	climb_jump: method(self, function() {
+		return input_check_pressed(VERB.JUMP);
 	}),
 }
 #endregion
