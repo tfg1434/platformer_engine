@@ -63,13 +63,18 @@ climb_down_t_max = 10;
 climb_up_curve = TwerpType.in_sine;
 climb_down_curve = TwerpType.in_sine;
 
-climb_hop_hsp = 0.7;
-climb_hop_vsp = -2.0;
+climb_hop_hsp = 0.85;
+climb_hop_vsp = -3.2;
+climb_hop_wait_h = 0;
+climb_hop_wait_hsp = 0;
 
 wall_slide_max = 70;
 wall_slide_t = 0;
 wall_slide_start_spd = 1.3;
 wall_slide_curve = TwerpType.in_cubic;
+
+hand_off = 10; //difference between bbox top and hands
+
 
 common_jump = function() {
 	move_h();
@@ -231,7 +236,7 @@ state = new SnowState("idle")
 			vsp = climb_start_spd;
 			climb_up_t = 0;
 		},
-		step: function() {			
+		step: function() {
 			if (check_state.climb_hop()) {
 				state.change("climb_hop");
 				return;
@@ -341,7 +346,8 @@ state = new SnowState("idle")
 	#region climb_hop
 	.add("climb_hop", {
 		enter: function() {
-			hsp = on_corner() * climb_hop_hsp;
+			climb_hop_wait_h = on_wall();
+			climb_hop_wait_hsp = on_wall() * climb_hop_hsp;
 			vsp = climb_hop_vsp;
 		},
 		step: function() {
@@ -353,6 +359,16 @@ state = new SnowState("idle")
 				state.change("run");	
 			}
 			
+			if (climb_hop_wait_h != 0) {
+				if (sign(hsp) == -climb_hop_wait_h || vsp > 0)
+					climb_hop_wait_h = 0;
+				else if (!place_meeting(x + climb_hop_wait_h, y, obj_wall)) {
+					hsp = climb_hop_wait_hsp;
+					climb_hop_wait_h = 0;
+				}
+			}
+			
+			
 			vsp += grv;
 			
 			move_collide();
@@ -363,7 +379,12 @@ state = new SnowState("idle")
 	.add_child("rising", "climb_jump", {
 		step: function() {
 			if (vsp >= 0) {
-				state.change("climb_still");
+				if (input_check(VERB.CLIMB) && on_wall() != 0) {
+					state.change("climb_still");
+					return;
+				}
+				
+				state.change("falling");
 				return;
 			}
 			
@@ -387,7 +408,7 @@ check_state = {
 		return on_ground () && HDIR != 0;
 	}),
 	rising: method(self, function() {
-		return input_check_pressed(VERB.JUMP());
+		return input_check_pressed(VERB.JUMP);
 	}),
 	falling: method(self, function() {
 		return vsp > 0;
@@ -406,7 +427,7 @@ check_state = {
 		return input_check(VERB.DOWN) && !on_ground();
 	}),
 	climb_hop: method(self, function() {
-		return !place_meeting(x + on_wall(), y, obj_wall) && vsp < 0;
+		return not_check_hands() && vsp < 0;//!place_meeting(x + on_wall(), y, obj_wall) && vsp < 0;
 	}),
 	climb_jump: method(self, function() {
 		return input_check_pressed(VERB.JUMP);
@@ -418,6 +439,24 @@ check_state = {
 do_jump = function(_args={ hsp: 0, vsp: j_vel, }) {
 	hsp += _args.hsp * image_xscale;
 	vsp = _args.vsp;
+}
+
+///@func not_check_hands(add_y=0)
+not_check_hands = function(_add_y=0) {
+	var facing = on_wall();
+	if (facing == 0)
+		throw "can't call check_hands when not on wall";
+	return !place_meeting(x + facing, y - hand_off + _add_y, obj_wall);
+	
+	//return !place_meeting(x + on_wall(), y, obj_wall) && vsp < 0;
+	//var facing = on_wall();
+	//if (facing == 0)
+	//	throw "can't call check_hands when not on wall";
+	
+	//var xx = facing == 1 ? bbox_right : bbox_left;
+	//var yy = bbox_top + hand_off + _add_y;;
+	
+	//return !place_meeting(xx + facing, yy, obj_wall);
 }
 
 move_collide = function() {
