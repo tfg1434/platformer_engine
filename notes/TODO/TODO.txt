@@ -1,3 +1,6 @@
+if you do a climb jump but switch direction soon, 
+switch to wall jump and refund stamina
+
 
 fast fall
 

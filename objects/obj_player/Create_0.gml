@@ -25,10 +25,9 @@ accel_curve = TwerpType.in_sine;
 deccel_t = 0;
 deccel_max = 3;
 deccel_curve = TwerpType.in_sine;
-
-air_fric = 0.65; //curve gets multiplied by this
-
 run_spd = 3;
+air_fric = 0.65; //acceldeccel gets multiplied by this in air
+
 max_fall = 3.5; //max gravity speed
 
 hsp = 0;
@@ -75,6 +74,8 @@ wall_slide_t = 0;
 wall_slide_start_spd = 1.3;
 wall_slide_curve = TwerpType.in_cubic;
 
+wall_jump_hsp = 5;
+
 hand_off = 6; //difference between bbox bottom and hands
 
 
@@ -108,6 +109,8 @@ state = new SnowState("idle")
 				state.change("falling");
 				return;
 			}
+			
+			move_h();
 		}
 	})
 	#endregion
@@ -413,7 +416,7 @@ check_state = {
 		return on_ground() && HDIR == 0;
 	}),
 	run: method(self, function() {
-		return on_ground () && HDIR != 0;
+		return on_ground() && HDIR != 0;
 	}),
 	rising: method(self, function() {
 		return input_check_pressed(VERB.JUMP);
@@ -440,10 +443,14 @@ check_state = {
 	climb_jump: method(self, function() {
 		return input_check_pressed(VERB.JUMP);
 	}),
+	wall_jump: method(self, function() {
+		var climb_wall_jump = on_wall() != 0 
+			&& input_check(VERB.CLIMB) && HDIR == -on_wall();
+	}),
 }
 #endregion
 	
-///@func do_jump({ hsp ; vsp })
+///@func do_jump({ hsp=0 ; vsp=j_vel })
 do_jump = function(_args={ hsp: 0, vsp: j_vel, }) {
 	hsp += _args.hsp * image_xscale;
 	vsp = _args.vsp;
@@ -498,9 +505,16 @@ on_ceil = function() {
 }
 
 move_h = function() {
+	static prev_hdir = 0;
+	
 	var mult = on_ground() ? 1 : air_fric;
 	
 	if (HDIR != 0) {
+		if (HDIR == -prev_hdir) {
+			accel_t = 0;
+			deccel_t = 0;
+		}
+		
 		accel_t = approach(accel_t, accel_max, mult);
 		deccel_t = approach(deccel_t, 0, mult);
 	} else {
@@ -513,7 +527,9 @@ move_h = function() {
 		hsp = twerp(accel_curve, 0, run_spd * HDIR, accel_t / accel_max);
 	else
 		//decellerate
-		hsp = twerp(deccel_curve, run_spd * sign(hsp), 0, deccel_t / deccel_max);	
+		hsp = twerp(deccel_curve, run_spd * sign(hsp), 0, deccel_t / deccel_max);
+		
+	prev_hdir = HDIR;
 }
 
 on_wall = function() {
