@@ -63,6 +63,8 @@ climb_down_t_max = 10;
 climb_up_curve = TwerpType.in_sine;
 climb_down_curve = TwerpType.in_sine;
 
+climb_slip_spd = 0.6;
+
 climb_hop_hsp = 0.85;
 climb_hop_vsp = -3.2;
 climb_hop_wait_h = 0;
@@ -73,7 +75,7 @@ wall_slide_t = 0;
 wall_slide_start_spd = 1.3;
 wall_slide_curve = TwerpType.in_cubic;
 
-hand_off = 10; //difference between bbox top and hands
+hand_off = 6; //difference between bbox bottom and hands
 
 
 common_jump = function() {
@@ -259,9 +261,15 @@ state = new SnowState("idle")
 			}
 			
 			
-			vsp = twerp(climb_up_curve, climb_start_spd, 
-				climb_spd, climb_up_t / climb_up_t_max);
-			climb_up_t++;
+			if (not_check_hands())
+				vsp = climb_slip_spd;
+			else {
+				vsp = twerp(climb_up_curve, climb_start_spd, 
+					climb_spd, climb_up_t / climb_up_t_max);
+				climb_up_t++;
+			}
+			
+			
 				
 				
 			move_collide();
@@ -421,13 +429,13 @@ check_state = {
 	}),
 	climb_still: method(self, function() {
 		return on_wall() != 0 && input_check(VERB.CLIMB) 
-			&& VDIR == 0;
+			&& VDIR == 0 && check_hands();
 	}),
 	climb_down: method(self, function() {
 		return input_check(VERB.DOWN) && !on_ground();
 	}),
 	climb_hop: method(self, function() {
-		return not_check_hands() && vsp < 0;//!place_meeting(x + on_wall(), y, obj_wall) && vsp < 0;
+		return not_check_hands() && vsp < 0 && VDIR == 1;
 	}),
 	climb_jump: method(self, function() {
 		return input_check_pressed(VERB.JUMP);
@@ -443,20 +451,15 @@ do_jump = function(_args={ hsp: 0, vsp: j_vel, }) {
 
 ///@func not_check_hands(add_y=0)
 not_check_hands = function(_add_y=0) {
+	return !check_hands(_add_y);
+}
+
+///@func check_hands(add_y=0)
+check_hands = function(_add_y=0) {
 	var facing = on_wall();
 	if (facing == 0)
 		throw "can't call check_hands when not on wall";
-	return !place_meeting(x + facing, y - hand_off + _add_y, obj_wall);
-	
-	//return !place_meeting(x + on_wall(), y, obj_wall) && vsp < 0;
-	//var facing = on_wall();
-	//if (facing == 0)
-	//	throw "can't call check_hands when not on wall";
-	
-	//var xx = facing == 1 ? bbox_right : bbox_left;
-	//var yy = bbox_top + hand_off + _add_y;;
-	
-	//return !place_meeting(xx + facing, yy, obj_wall);
+	return place_meeting(x + facing, y - hand_off + _add_y, obj_wall);
 }
 
 move_collide = function() {
