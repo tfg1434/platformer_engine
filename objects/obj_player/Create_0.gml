@@ -18,13 +18,13 @@ Slide over corners when you barely clip them
 
 event_user(0);
 
-accel_t = 0;
-accel_max = 6;
-accel_curve = TwerpType.in_sine;
+run_accel_t = 0;
+run_accel_t_max = 6;
+run_accel_curve = TwerpType.in_sine;
 
-deccel_t = 0;
-deccel_max = 3;
-deccel_curve = TwerpType.in_sine;
+run_deccel_t = 0;
+run_deccel_t_max = 3;
+run_deccel_curve = TwerpType.in_sine;
 run_spd = 3;
 air_fric = 0.65; //acceldeccel gets multiplied by this in air
 
@@ -74,7 +74,7 @@ wall_slide_t = 0;
 wall_slide_start_spd = 1.3;
 wall_slide_curve = TwerpType.in_cubic;
 
-wall_jump_hsp = 5;
+wall_jump_hsp = run_spd;
 
 hand_off = 6; //difference between bbox bottom and hands
 
@@ -511,23 +511,23 @@ move_h = function() {
 	
 	if (HDIR != 0) {
 		if (HDIR == -prev_hdir) {
-			accel_t = 0;
-			deccel_t = 0;
+			run_accel_t = 0;
+			run_deccel_t = 0;
 		}
 		
-		accel_t = approach(accel_t, accel_max, mult);
-		deccel_t = approach(deccel_t, 0, mult);
+		run_accel_t = approach(run_accel_t, run_accel_t_max, mult);
+		run_deccel_t = approach(run_deccel_t, 0, mult);
 	} else {
-		accel_t = approach(accel_t, 0, mult);
-		deccel_t = approach(deccel_t, deccel_max, mult);	
+		run_accel_t = approach(run_accel_t, 0, mult);
+		run_deccel_t = approach(run_deccel_t, run_deccel_t_max, mult);	
 	}
 			
 	if (HDIR != 0)
 		//accelerate
-		hsp = twerp(accel_curve, 0, run_spd * HDIR, accel_t / accel_max);
+		hsp = twerp(run_accel_curve, 0, run_spd * HDIR, run_accel_t / run_accel_t_max);
 	else
 		//decellerate
-		hsp = twerp(deccel_curve, run_spd * sign(hsp), 0, deccel_t / deccel_max);
+		hsp = twerp(run_deccel_curve, run_spd * sign(hsp), 0, run_deccel_t / run_deccel_t_max);
 		
 	prev_hdir = HDIR;
 }
