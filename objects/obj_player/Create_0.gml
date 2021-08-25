@@ -28,6 +28,9 @@ run_deccel_curve = TwerpType.in_sine;
 run_spd = 3;
 air_fric = 0.65; //acceldeccel gets multiplied by this in air
 
+//speed to deccelerate at if above max run speed
+above_run_deccel = 0.2;
+
 max_fall = 3.5; //max gravity speed
 
 hsp = 0;
@@ -74,13 +77,12 @@ wall_slide_t = 0;
 wall_slide_start_spd = 1.3;
 wall_slide_curve = TwerpType.in_cubic;
 
-wall_jump_hsp = run_spd;
+wall_jump_hsp = -4;
 
 hand_off = 6; //difference between bbox bottom and hands
 
 
 common_jump = function() {
-	move_h();
 	update_facing();
 			
 	if (input_check(VERB.JUMP))
@@ -161,6 +163,7 @@ state = new SnowState("idle")
 			
 			
 			common_jump();
+			move_h();
 			
 				
 			move_collide();
@@ -260,6 +263,10 @@ state = new SnowState("idle")
 			}
 			if (check_state.climb_jump()) {
 				state.change("climb_jump");
+				return;
+			}
+			if (check_state.wall_jump()) {
+				state.change("wall_jump");
 				return;
 			}
 			
@@ -401,9 +408,31 @@ state = new SnowState("idle")
 			
 			
 			common_jump();
+			move_h();
 			
 			move_collide();
 		}
+	})
+	#endregion
+	#region wall_jump
+	.add_child("rising", "wall_jump", {
+		enter: function() {
+			do_jump(wall_jump_hsp);
+		},
+		step: function() {
+			print hsp;
+			
+			if (check_state.falling()) {
+				state.change("falling");
+				return;
+			}
+			
+			
+			common_jump();
+			
+				
+			move_collide();
+		},
 	});
 	#endregion
 
@@ -441,19 +470,24 @@ check_state = {
 		return not_check_hands() && vsp < 0 && VDIR == 1;
 	}),
 	climb_jump: method(self, function() {
-		return input_check_pressed(VERB.JUMP);
+		return input_check_pressed(VERB.JUMP) && on_wall() != -HDIR;
 	}),
 	wall_jump: method(self, function() {
-		var climb_wall_jump = on_wall() != 0 
-			&& input_check(VERB.CLIMB) && HDIR == -on_wall();
+		var climb_wall_jump = 
+			//on wall      && moving away from wall
+			on_wall() != 0 && on_wall() == -HDIR &&
+			//holding climb         && jump pressed
+			input_check(VERB.CLIMB) && input_check_pressed(VERB.JUMP)
+			
+		return climb_wall_jump;
 	}),
 }
 #endregion
 	
-///@func do_jump({ hsp=0 ; vsp=j_vel })
-do_jump = function(_args={ hsp: 0, vsp: j_vel, }) {
-	hsp += _args.hsp * image_xscale;
-	vsp = _args.vsp;
+///@func do_jump(hsp=0, vsp=j_vel)
+do_jump = function(_hsp=0, _vsp=j_vel) {
+	hsp += _hsp * image_xscale;
+	vsp = _vsp;
 }
 
 ///@func not_check_hands(add_y=0)
@@ -508,6 +542,13 @@ move_h = function() {
 	static prev_hdir = 0;
 	
 	var mult = on_ground() ? 1 : air_fric;
+	
+	if (abs(hsp) > run_spd && sign(hsp) == image_xscale) {
+		hsp = approach(hsp, run_spd, above_run_deccel);
+		run_accel_t = run_accel_t_max;
+		run_deccel_t = 0;
+		return;
+	}
 	
 	if (HDIR != 0) {
 		if (HDIR == -prev_hdir) {
